@@ -1,0 +1,81 @@
+# Full SABLE model - Standard configuration
+# Purpose:Quick validation of experiment workflow and performance trends
+
+experiment:
+  name: "SABLE-Full"
+  description: "Full SABLE model"
+  version: "v2.0"
+
+# Random seed configuration
+  seed: 42
+  seed_list: [42]  # Uses only one seed
+
+# Run mode
+  mode: "standard"
+  num_runs: 1
+
+# Training parameters
+training:
+  k_shot: 5
+  q_shot: 10
+  episodes: 500  # Extended configuration: increased from 100 to 500 episodes, to fully demonstrate component differences
+  seed: 42  #  moved to training level, ensure seed setting code can read
+  lr_inner: 0.001
+  lr_meta: 0.001
+  inner_steps: 5
+  patience: 500
+  early_stopping: true  # Enable early stopping
+
+# Core component switches(full configuration)
+components:
+#  Architectural innovations
+  use_sparse_vd: true        #  Sparse Variational Dropout
+  meta_learning: true         #  MAML Meta-Learning Framework
+
+#  Training strategy innovations
+  hard_negative: true         #  Hard Negative Sampling
+  use_fixed_pos_weight: true  #  Class Weighting Strategy
+  fixed_pos_weight: 3.0  #  rolled back to good configuration: restored from 20.0 to 3.0
+
+#  Inference strategy innovations
+  use_recall_priority: true   #  Recall Priority Strategy
+  use_threshold_search: true  #  Adaptive Threshold Selection
+  threshold_mode: "search"    #  Adaptive Threshold Search
+  fixed_threshold: 0.5
+
+# Recall Priority Strategy
+recall_priority:
+  enabled: true
+  rmin_schedule: "linear"
+  r_start: 0.55  #  2026-01-31good configuration: from0.40restored to0.55
+  r_target: 0.80  #  2026-01-31good configuration: from0.60restored to0.80
+  r_warmup_frac: 0.4
+  fbeta_beta: 2.0  #  2026-01-31good configuration: F2,
+
+#  Resampling Configuration(Force disabled)
+resampling:
+  enabled: false  #  Ablation experimentdisabled
+  method: null
+  target_ratio: 1
+  smote_k_neighbors: 5
+  enn_n_neighbors: 3
+
+# Performance Optimization(Does not affect results)
+performance:
+  use_mixed_precision: false
+  grad_clip_enabled: true
+  grad_clip_value: 1.0
+  enable_garbage_collection: true
+  gc_frequency: 10
+
+# Output Configuration
+output:
+  save_dir: "results/sable_full"
+  log_level: "INFO"
+  save_every: 50
+
+# Data configuration
+data:
+  raw_dir: "data"  # Directory containing CSV files
+  incident_file: "incident_data.csv"
+  normal_file: "common_data.csv"

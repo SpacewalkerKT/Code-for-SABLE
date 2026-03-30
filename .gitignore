@@ -1,0 +1,186 @@
+# ============================================================
+# SABLE Project .gitignore
+# For IEEE OJ-ITS Paper Reproducibility
+# ============================================================
+
+# ------------------------------------------------------------
+# Python
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ------------------------------------------------------------
+# Virtual Environments
+# ------------------------------------------------------------
+venv/
+.venv/
+ENV/
+env/
+.env/
+
+# ------------------------------------------------------------
+# IDE and Editors
+# ------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-*
+.spyderproject
+.spyproject
+
+# ------------------------------------------------------------
+# Jupyter Notebook
+# ------------------------------------------------------------
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ------------------------------------------------------------
+# Output Directories
+# ------------------------------------------------------------
+outputs/
+runs/
+results/
+cache/
+metrics/
+figures/
+logs/
+logs_remote/
+outputs_remote/
+cloud_server_artifacts/
+results_20260210_170129/
+checkpoints/
+src/checkpoints/
+src/artifacts/
+
+# ------------------------------------------------------------
+# Data Files (Privacy)
+# ------------------------------------------------------------
+# Keep directory structure but ignore data files
+data/raw/*.csv
+data/raw/*.xlsx
+data/raw/*.parquet
+data/processed/*.csv
+data/processed/*.pkl
+data/processed/*.parquet
+data/cache/*.pkl
+data/cache/*.pt
+
+# Keep .gitkeep files
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/cache/.gitkeep
+
+# Old data directories
+data/raw/full_results_2024/
+
+# ------------------------------------------------------------
+# Temporary & Generated Files
+# ------------------------------------------------------------
+*.log
+*.tmp
+*.bak
+*.bak_*
+
+# Result files
+*.csv
+!requirements.txt
+!data/processed/task_sampling_summary.csv
+
+# Documentation files (not for code)
+*.docx
+*.doc
+*.pdf
+!docs/paper/*.pdf
+
+# Archives
+
+# ------------------------------------------------------------
+# OS Generated Files
+# ------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ------------------------------------------------------------
+# Cloud Deployment (Not for GitHub)
+# ------------------------------------------------------------
+.cloudignore
+server_info.sh
+rollback_docs_reorg.sh
+
+# ------------------------------------------------------------
+# Documentation Archives
+# ------------------------------------------------------------
+docs/_backup/
+docs/archive/
+docs/legacy/
+
+# ------------------------------------------------------------
+# Testing & Coverage
+# ------------------------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ------------------------------------------------------------
+# Experimental Files (Keep Structure)
+# ------------------------------------------------------------
+# Keep experiment configs but not outputs
+experiments/outputs/
+experiments/results/
+experiments/logs/
+
+# ------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------
+*.pkl
+*.pt
+*.pth
+*.ckpt
+!outputs/.gitkeep
+!runs/.gitkeep
+!outputs/checkpoints/.gitkeep
+
+# Task sampling logs
+task_sampling_log.csv
+task_sampling_summary.csv
+efficiency_summary.csv
+docs_file_list.txt
+
+# Microsoft Office temp files
+~$*.docx
+~$*.xlsx
+~$*.pptx

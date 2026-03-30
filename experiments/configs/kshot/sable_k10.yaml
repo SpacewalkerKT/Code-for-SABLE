@@ -1,0 +1,66 @@
+# SABLE K-shot Sensitivity - K=10
+# Purpose:SABLEatunder
+
+experiment:
+  name: "SABLE-K10"
+  description: "SABLE K-shot sensitivity analysis - K=10"
+  version: "v1.0"
+  seed: 42
+  seed_list: [42]
+  mode: "kshot"
+  num_runs: 1
+
+# Training parameters - K=10
+training:
+  k_shot: 10
+  q_shot: 10
+  episodes: 500
+  seed: 42
+  lr_inner: 0.001
+  lr_meta: 0.001
+  inner_steps: 5
+  patience: 500
+  early_stopping: true
+
+# Core component switches(full configuration)
+components:
+  use_sparse_vd: true
+  meta_learning: true
+  hard_negative: true
+  use_fixed_pos_weight: true
+  fixed_pos_weight: 3.0
+  use_recall_priority: true
+  use_threshold_search: true
+  threshold_mode: "search"
+  fixed_threshold: 0.5
+
+recall_priority:
+  enabled: true
+  rmin_schedule: "linear"
+  r_start: 0.55
+  r_target: 0.80
+  r_warmup_frac: 0.4
+  fbeta_beta: 2.0
+
+resampling:
+  enabled: false
+  method: null
+  target_ratio: 1
+
+performance:
+  use_mixed_precision: false
+  grad_clip_enabled: true
+  grad_clip_value: 1.0
+  enable_garbage_collection: true
+  gc_frequency: 10
+
+output:
+  save_dir: "results/kshot/sable_k10"
+  log_level: "INFO"
+  save_every: 50
+
+# Data configuration
+data:
+  raw_dir: "data"  # Directory containing CSV files
+  incident_file: "incident_data.csv"
+  normal_file: "common_data.csv"

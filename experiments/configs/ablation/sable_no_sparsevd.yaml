@@ -1,0 +1,73 @@
+# Ablation experiment1:Sparse Variational Dropout
+# :F1under1.9%
+
+experiment:
+  name: "SABLE-No-SparseVD"
+  description: "Ablation of Sparse VD, replaced with standard Dropout (p=0.5)"
+  version: "v2.0"
+  ablation_target: "Sparse Variational Dropout"  # ablation
+
+  seed: 42
+  seed_list: [42]
+  mode: "standard"
+  num_runs: 1
+
+training:
+  k_shot: 5
+  q_shot: 10
+  episodes: 500  # Extended configuration: increased from 100 to 500 episodes
+  lr_inner: 0.001
+  lr_meta: 0.001
+  inner_steps: 5
+  patience: 500
+  early_stopping: true
+
+components:
+#  ablation:disabledSparse Variational Dropout
+  use_sparse_vd: false         #  ablation:asDropout
+  dropout_rate: 0.5            # Dropout
+
+#  Architectural innovations
+  meta_learning: true          # 
+
+#  Training strategy innovations
+  use_class_weight: true       #  (, )
+  hard_negative: true          # 
+  use_fixed_pos_weight: true   # 
+  fixed_pos_weight: 3.0        # 
+
+#  Inference strategy innovations
+  use_recall_priority: true    # 
+  use_threshold_search: true   # 
+  fixed_threshold: 0.5
+
+recall_priority:
+  enabled: true
+  rmin_schedule: "linear"
+  r_start: 0.55
+  r_target: 0.80
+  r_warmup_frac: 0.4
+  fbeta_beta: 2.0  #  and P0
+
+#  Resampling Configuration(Force disabled)
+resampling:
+  enabled: false
+  method: null
+
+performance:
+  use_mixed_precision: false
+  grad_clip_enabled: true
+  grad_clip_value: 1.0
+  enable_garbage_collection: true
+  gc_frequency: 10
+
+output:
+  save_dir: "results/sable_no_sparsevd"
+  log_level: "INFO"
+  save_every: 50
+
+# Data configuration
+data:
+  raw_dir: "data"  # Directory containing CSV files
+  incident_file: "incident_data.csv"
+  normal_file: "common_data.csv"
