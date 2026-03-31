@@ -84,7 +84,7 @@ matplotlib.rcParams['font.sans-serif'] = ['DejaVu Sans']
 # Reduce Matplotlib internal logs (e.g., findfont) to errors only
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 from torch.utils.tensorboard import SummaryWriter
-from typing import Dict, List, optional, Tuple, Type, Any
+from typing import Dict, List, Optional, Tuple, Type, Any
 
 # ===== Performanceance Optimization Tools =====
 import psutil
@@ -167,8 +167,8 @@ class Performanceancemetrics:
     whenstamp: float
     cpu_percent: float
     memory_mb: float
-    gpu_memory_mb: optional[float] = None
-    gpu_utilization: optional[float] = None
+    gpu_memory_mb: Optional[float] = None
+    gpu_utilization: Optional[float] = None
     operation: str = ""
 
 class PerformanceanceMonitor:
@@ -238,7 +238,7 @@ perf_monitor = PerformanceanceMonitor()
 # NOTE
 # - Support atRunStartingDuring trainingbased onIntervalWrite when finished JSON lineFor assistant/Script parsing
 # - Configuration pathPriorityanalysis_export.progress_jsonl > analysis_export.metrics_jsonl > runs/<ts>/metrics.jsonl
-PROGRESS_JSONL_PATH: optional[str] = None
+PROGRESS_JSONL_PATH: Optional[str] = None
 PROGRESS_EVAL_INTERVAL: int = 50  # Default every 50 roundWriteOnceprogress
 
 def _ensure_parent_dir(path: str) -> None:
@@ -248,7 +248,7 @@ def _ensure_parent_dir(path: str) -> None:
     if d and not os.path.exists(d):
         os.makedirs(d, exist_ok=True)
 
-def _append_jsonl(path: optional[str], record: Dict) -> None:
+def _append_jsonl(path: Optional[str], record: Dict) -> None:
     if not path:
         return
     try:
@@ -258,7 +258,7 @@ def _append_jsonl(path: optional[str], record: Dict) -> None:
     except Exception as e:  # pragma: no cover
         print(f"[Progress] Write {path} Failed: {e}")
 
-def report_start(seed: optional[int], episodes_total: optional[int], config_path: optional[str], run_dir: optional[str]):
+def report_start(seed: Optional[int], episodes_total: Optional[int], config_path: Optional[str], run_dir: Optional[str]):
     rec = {
         "status": "start",
         "whenstamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -269,8 +269,8 @@ def report_start(seed: optional[int], episodes_total: optional[int], config_path
     }
     _append_jsonl(PROGRESS_JSONL_PATH, rec)
 
-def report_progress(episode: int, episodes_total: int, elapsed_sec: float, metrics: optional[Dict] = None,
-                    config_path: optional[str] = None, run_dir: optional[str] = None):
+def report_progress(episode: int, episodes_total: int, elapsed_sec: float, metrics: Optional[Dict] = None,
+                    config_path: Optional[str] = None, run_dir: Optional[str] = None):
     rec = {
         "status": "progress",
         "whenstamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -448,7 +448,7 @@ def objective(trial: Trial) -> float:
     RECALL_MIN_THRESHOLD = 0.55
     PENALTY_LAMBDA = 2.0
 
-    def _pruning_callback(step_index: int, metrics: optional[Dict[str, float]] = None) -> None:
+    def _pruning_callback(step_index: int, metrics: Optional[Dict[str, float]] = None) -> None:
         """for training process in callbackpruning hook forbased on soft constraint scoremake early stopping deccision"""
         if metrics is None:
             return
@@ -712,7 +712,7 @@ def _print_baseline_summary(summary: Dict[str, float]):
         print(f"   recommend re-evaluatingbaseline calculation logic{reason}")
 
 
-def build_normal_pool(normal_df, after_prob=0.5, tracker: optional[BaselineStatsTracker] = None):
+def build_normal_pool(normal_df, after_prob=0.5, tracker: Optional[BaselineStatsTracker] = None):
     """Build feature pool of normal sample differences and preserve metadata."""
     pool: List[Dict[str, object]] = []
     grouped = normal_df.groupby(["IncidentId", "SensorNumber"])
@@ -830,7 +830,7 @@ def build_normal_pool(normal_df, after_prob=0.5, tracker: optional[BaselineStats
 
 
 def extract_abnormal_features(df, incident_id, sensor_id,
-                              tracker: optional[BaselineStatsTracker] = None):
+                              tracker: Optional[BaselineStatsTracker] = None):
     """
     optimized versionExtractexceptionDataofdifference valuewhen sequenceFeature
 
@@ -911,7 +911,7 @@ def extract_abnormal_features(df, incident_id, sensor_id,
     return delta_segs if delta_segs.shape == (FEATURE_DIM,) and np.isfinite(delta_segs).all() else None
 
 
-def build_abnormal_tasks(incident_df, tracker: optional[BaselineStatsTracker] = None):
+def build_abnormal_tasks(incident_df, tracker: Optional[BaselineStatsTracker] = None):
     """based on Description+Week+tag into exception typesonly keep successfully extracted to feature pairs
 
     Args:
@@ -1391,8 +1391,8 @@ def _hash_normal_pool_structure(normal_entries: List[Dict[str, object]]) -> str:
 def _collect_resample_cache_meta(
         train_tasks: Dict[str, List[tuple]],
         normal_train: List[Dict[str, object]],
-        incident_source_path: optional[str],
-        normal_source_path: optional[str],
+        incident_source_path: Optional[str],
+        normal_source_path: Optional[str],
 ) -> Dict[str, object]:
     """generate resampling cacheinfo to decide whethercache is still valid"""
     meta: Dict[str, object] = {
@@ -2464,8 +2464,8 @@ class StandardTransformer(BaseModel):
             dropout_rate: float = 0.3,
             l2_reg: float = 1e-4,
             activation: str = "gelu",
-            sequence_length: optional[int] = None,
-            feature_channels: optional[int] = None,
+            sequence_length: Optional[int] = None,
+            feature_channels: Optional[int] = None,
             **kwargs,
     ) -> None:
         super().__init__(input_dim, dropout_rate)
@@ -2653,8 +2653,8 @@ class B_SMALL_Transformer(BaseModel):
             dim_feedforward: int = 256,
             dropout_rate: float = 0.3,
             activation: str = "gelu",
-            sequence_length: optional[int] = None,
-            feature_channels: optional[int] = None,
+            sequence_length: Optional[int] = None,
+            feature_channels: Optional[int] = None,
             **kwargs,
     ) -> None:
         super().__init__(input_dim, dropout_rate)
@@ -3284,12 +3284,12 @@ def train_maml(
         # ===== newly added sampling with weightconfigurationfacilitate sweep =====
     hard_neg: bool = True,  # Hard negative sample mining enabled by default (core strategy), manually disable for ablation
         other_abnormal_ratio: float = OTHER_ABNORMAL_RATIO,
-        use_fixed_pos_weight: optional[bool] = None,
-        fixed_pos_weight: optional[float] = None,
+        use_fixed_pos_weight: Optional[bool] = None,
+        fixed_pos_weight: Optional[float] = None,
         # ===== newly added comparison modelssupport =====
         use_comparison_model: bool = False,  # Whether to use comparison models
-        comparison_model_name: optional[str] = None,  # Comparison model name
-        comparison_config: optional[dict] = None,  # Complete comparison modelconfiguration
+        comparison_model_name: Optional[str] = None,  # Comparison model name
+        comparison_config: Optional[dict] = None,  # Complete comparison modelconfiguration
 ):
     """
     integratedEd B-SMALL ofTrainingFunction
@@ -4444,7 +4444,7 @@ def evaluate_on_split(
         # ===== sampling with threshold value control =====
         hard_neg: bool = False,
         other_abnormal_ratio: float = OTHER_ABNORMAL_RATIO,
-        fixed_threshold: optional[float] = None,
+        fixed_threshold: Optional[float] = None,
         # ===== Fig.2/Fig.4 Data Export (2026-03-03 ) =====
         save_scores: bool = False,  # Whether to save y_true/y_scores to CSV (for Fig.2 PR Curve)
         method_name: str = "unknown",  # Method name (for file naming)
@@ -4953,7 +4953,7 @@ MODEL_REGISTRY: Dict[str, Type[BaseModel]] = {
 }
 
 
-def get_model(model_type: str = "mlp", input_dim: int = FEATURE_DIM, model_kwargs: optional[Dict] = None) -> BaseModel:
+def get_model(model_type: str = "mlp", input_dim: int = FEATURE_DIM, model_kwargs: Optional[Dict] = None) -> BaseModel:
     """Return corresponding baseline model instance based on model type."""
     if model_kwargs is None:
         model_kwargs = {}
