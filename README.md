@@ -72,7 +72,7 @@ The benchmark dataset for traffic anomaly detection was constructed utilizing th
 
 ### Accessing the Dataset
 
-The complete processed dataset is publicly hosted on **IEEE DataPort**: `[Insert your IEEE DataPort Link Here]`
+The complete processed dataset is publicly hosted on **IEEE DataPort**: `https://dx.doi.org/10.21227/d6ht-c375`
 
 1.  Download `incident_data.csv` and `common_data.csv` from the link above.
 2.  Place the downloaded files into the `data/` directory.
