@@ -61,12 +61,12 @@ performance:
   gc_frequency: 10
 
 output:
-  save_dir: "results/sable_no_metalearning"
+  save_dir: "/results/sable_no_metalearning"
   log_level: "INFO"
   save_every: 50
 
 # Data configuration
 data:
-  raw_dir: "data"  # Directory containing CSV files
+  raw_dir: "/data"  # Directory containing CSV files
   incident_file: "incident_data.csv"
   normal_file: "common_data.csv"

@@ -183,7 +183,7 @@ class BaseComparisonModel(nn.Module, ABC):
         return self.model_name
 
     # ===== SABLE training loop compatible interface =====
-    # For using comparison models in SABLE_optimized.py training loop,
+    # For using comparison models in SABLE.py training loop,
     # need to implement the following adaptation method.
 
     def named_params_dict(self):

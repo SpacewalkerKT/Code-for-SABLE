@@ -1,4 +1,4 @@
-# SABLE_optimized.py - Performanceance Optimized Version
+# SABLE.py - SABLE Framework Implementation
 # # File header fix: removed mistakenly inserted runwhen code
 #
 # IMPORTANT:
@@ -306,7 +306,7 @@ plt.rcParams['axes.unicode_minus'] = False
 if 'run_training_trial' not in globals():
     def run_training_trial(params):  # pragma: no cover
         raise NotimplementingedError(
-            "run_training_trial Not yet in SABLE_optimized.py implementinged inPlease integrateOriginal training process"
+            "run_training_trial Not yet in SABLE.py implementinged inPlease integrateOriginal training process"
             "to avoidOptuna is not installed Optuna/not integratedtraining entry is not integrated, calling parameter tuning logic"
         )
 
@@ -5367,7 +5367,7 @@ if __name__ == "__main__":
         cli_args, unknown = parser.parse_known_args()
 
         if cli_args.help:
-            print("Usage: python SABLE_optimized.py [--config <path.yaml>] [--episodes <int>]")
+            print("Usage: python SABLE.py [--config <path.yaml>] [--episodes <int>]")
             print("Description: --config Will override some training/component/resampling params--episodes for quick override of iteration count")
     except Exception as _:
         cli_args = argparse.Namespace(config=None, episodes=None, help=False)

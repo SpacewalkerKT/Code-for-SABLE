@@ -197,15 +197,15 @@ def main():
     if device != "cpu":
         os.environ["CUDA_VISIBLE_DEVICES"] = device.split(":")[-1] if ":" in device else "0"
 
-    # Build command for SABLE_optimized.py
+    # Build command for SABLE.py
     cmd_args = ["--config", str(config_path)]
 
     if args.episodes:
         cmd_args.extend(["--episodes", str(args.episodes)])
 
-    # Override sys.argv for SABLE_optimized.py
+    # Override sys.argv for SABLE.py
     original_argv = sys.argv
-    sys.argv = ["SABLE_optimized.py"] + cmd_args
+    sys.argv = ["SABLE.py"] + cmd_args
 
     try:
         if not args.quiet:
@@ -213,10 +213,10 @@ def main():
             print("[SABLE] Starting experiment...")
             print(f"{'='*80}\n")
 
-        # Import and run SABLE_optimized
-        # Note: SABLE_optimized.py handles the main execution in its __main__ block
+        # Import and run SABLE
+        # Note: SABLE.py handles the main execution in its __main__ block
         import runpy
-        runpy.run_path(str(PROJECT_ROOT / "src" / "SABLE_optimized.py"), run_name="__main__")
+        runpy.run_path(str(PROJECT_ROOT / "src" / "SABLE.py"), run_name="__main__")
 
     except KeyboardInterrupt:
         print("\n[SABLE] Experiment interrupted by user")
