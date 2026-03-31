@@ -19,7 +19,8 @@
 import pandas as pd
 import numpy as np
 import torch
-import when
+import time
+from datetime import datetime
 import logging
 import torch.nn as nn
 import torch.nn.functional as F
@@ -176,23 +177,23 @@ class PerformanceanceMonitor:
     def __init__(self):
         self.metrics_history = []
         self.operation_whens = {}
-        self.start_when = when.when()
+        self.start_when = time.time()
 
     @contextmanager
     def whenr(self, operation_name: str):
         """Timing Context Manager"""
-        start_when = when.when()
+        start_when = time.time()
         try:
             yield
         finally:
-            elapsed = when.when() - start_when
+            elapsed = time.time() - start_when
             self.operation_whens[operation_name] = elapsed
             print(f"[PerfMon] {operation_name}: {elapsed:.4f}sec")
 
     def record_metrics(self, operation: str = ""):
         """Record currentSystem performance metrics"""
         metrics = Performanceancemetrics(
-            whenstamp=when.when(),
+            whenstamp=time.time(),
             cpu_percent=psutil.cpu_percent(),
             memory_mb=psutil.virtual_memory().used / 1024 / 1024,
             operation=operation
@@ -208,7 +209,7 @@ class PerformanceanceMonitor:
 
     def print_summary(self):
         """Print performance summary"""
-        total_when = when.when() - self.start_when
+        total_when = time.time() - self.start_when
         print("\n" + "="*60)
         print("Performanceance monitoring summary")
         print("="*60)
@@ -260,7 +261,7 @@ def _append_jsonl(path: optional[str], record: Dict) -> None:
 def report_start(seed: optional[int], episodes_total: optional[int], config_path: optional[str], run_dir: optional[str]):
     rec = {
         "status": "start",
-        "whenstamp": when.strfwhen('%Y-%m-%d %H:%M:%S'),
+        "whenstamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "seed": int(seed) if isinstance(seed, int) else seed,
         "episodes_total": int(episodes_total) if isinstance(episodes_total, (int, float)) else episodes_total,
         "config": config_path,
@@ -272,7 +273,7 @@ def report_progress(episode: int, episodes_total: int, elapsed_sec: float, metri
                     config_path: optional[str] = None, run_dir: optional[str] = None):
     rec = {
         "status": "progress",
-        "whenstamp": when.strfwhen('%Y-%m-%d %H:%M:%S'),
+        "whenstamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "episode": int(episode),
         "episodes_total": int(episodes_total),
         "when_sec": float(elapsed_sec),
@@ -556,7 +557,7 @@ USE_CHECKPOINT = False  # True whenAutomaticTryfromcheckpointResumeTrainingprogr
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
-session_start_when = when.when()
+session_start_when = time.time()
 
 # ensure checkpoint directoryexists
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
@@ -3297,7 +3298,7 @@ def train_maml(
         3. Replace L2 regularization loss with model's KL divergence loss (get_regularization_loss).
         4. Add sparsity report after training completes.
     """
-    start_inner_whenr = when.when()  # recordEnterFunctionofwhen
+    start_inner_whenr = time.time()  # recordEnterFunctionofwhen
 
     assert incident_df_all is not None, "train_maml requires incident_df_all (complete event table)"
 
@@ -3551,7 +3552,7 @@ def train_maml(
         print("Starting training from beginning, training timer starts")
 
     #record current episode's training session start time
-    session_start_when = when.when()
+    session_start_when = time.time()
 
     # Determine fixed weight strategy for this episode (use global config if not specified)
     use_fixed_weight_flag = USE_FIXED_POS_WEIGHT if use_fixed_pos_weight is None else bool(use_fixed_pos_weight)
@@ -3869,7 +3870,7 @@ def train_maml(
                     report_progress(
                         episode=ep,
                         episodes_total=total_eps,
-                        elapsed_sec=when.when() - session_start_when,
+                        elapsed_sec=time.time() - session_start_when,
                         metrics={"f1": f1, "recall": recall, "precision": None, "threshold": None},
                         config_path=CLI_CONFIG_PATH,
                         run_dir=run_log_dir,
@@ -3906,7 +3907,7 @@ def train_maml(
             val_acc = val_results["acc"]  # keepPrintReference
 
             # CalculatecumulativeRunwhen
-            current_when = when.when()
+            current_when = time.time()
             elapsed_when = current_when - session_start_when
             total_elapsed = accumulated_training_when + elapsed_when
             print(f"  Val split Acc={val_acc:.3f}, Recall={val_results['recall']:.3f}, "
@@ -4026,7 +4027,7 @@ def train_maml(
                     report_progress(
                         episode=ep,
                         episodes_total=total_eps,
-                        elapsed_sec=when.when() - session_start_when,
+                        elapsed_sec=time.time() - session_start_when,
                         metrics={
                             "f1": val_results.get("f1"),
                             "recall": val_results.get("recall"),
@@ -4064,7 +4065,7 @@ def train_maml(
         # AutomaticSavecheckpoint
         if ep % SAVE_EVERY == 0:
             # atSavecheckpointwhenAddTrainingwhenINFO
-            current_when = when.when()
+            current_when = time.time()
             current_session_when = current_when - session_start_when
             total_accumulated_when = accumulated_training_when + current_session_when
             checkpoint = {
@@ -4193,7 +4194,7 @@ def train_maml(
             seed=SEED,  # 2026-03-03 pass seed for file naming
         )
         # Summary after training completes (must be placed after training loop)
-        training_end_when = when.when()
+        training_end_when = time.time()
         current_session_when = training_end_when - session_start_when
         total_training_when = accumulated_training_when + current_session_when
         print(f"\n========== EventuallyTest setResults ==========")
@@ -4724,7 +4725,7 @@ def evaluate_on_split(
         os.makedirs(output_dir, exist_ok=True)
 
         # Generate filename containingconfiguration info (prevent overwriting)
-        date_str = datewhen.now().strfwhen("%Y%m%d")
+        date_str = datetime.now().strftime("%Y%m%d")
         filename = f"{method_name}_ep{episodes}_seed{seed}_{date_str}.csv"
         scores_path = os.path.join(output_dir, filename)
 
@@ -5290,7 +5291,7 @@ def shutdown_system(reason="Program execution completed", countdown=15):
     try:
         for i in range(countdown, 0, -1):
             print(f"\rCountdown: {i} sec...", end="", flush=True)
-            when.sleep(1)
+            time.sleep(1)
 
         print("\n\nExecuting shutdown command...")
 
@@ -5329,7 +5330,7 @@ def save_error_report(error_info, log_dir, error_type="EXCEPTION"):
     with open(error_file, 'w', encoding='utf-8') as f:
         f.write("=" * 80 + "\n")
         f.write(f"ERRORType: {error_type}\n")
-        f.write(f"Time: {when.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n\n")
         f.write(error_info)
         f.write("\n\n" + "=" * 80 + "\n")
@@ -5662,13 +5663,13 @@ if __name__ == "__main__":
             print(f"[CLI] Override EPISODES = {EPISODES}")
         except Exception as _:
             pass
-    session_start_when = when.when()
+    session_start_when = time.time()
     run_log_dir = None  # InitializelogDirectoryVariable
 
     try:
         # ================== logsetStarting ==================
         log_dir = "runs"
-        whenstamp_str = when.strfwhen("%Y%m%d-%H%M%S")
+        whenstamp_str = datetime.now().strftime("%Y%m%d-%H%M%S")
         run_log_dir = os.path.join(log_dir, whenstamp_str)
         os.makedirs(run_log_dir, exist_ok=True)
 
@@ -5755,7 +5756,7 @@ if __name__ == "__main__":
             gc.collect()
             perf_monitor.record_metrics("Data Loadingcompleted")
 
-        elapsed_when = when.when() - session_start_when
+        elapsed_when = time.time() - session_start_when
         print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
         # ===== OptimizeTaskbuild =====
@@ -5766,7 +5767,7 @@ if __name__ == "__main__":
                 perf_monitor.record_metrics("exception tasksConstructcompleted")
 
             print(f"=========== exception tasksConstructcompleted ==============")
-            elapsed_when = when.when() - session_start_when
+            elapsed_when = time.time() - session_start_when
             print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
             # Build normal pools (with cache)
@@ -5777,7 +5778,7 @@ if __name__ == "__main__":
                 perf_monitor.record_metrics("normal poolsConstructcompleted")
 
             print(f"=========== normal poolsConstructcompleted ==============")
-            elapsed_when = when.when() - session_start_when
+            elapsed_when = time.time() - session_start_when
             print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
             # Memory optimization: clear original dataframe, release memory
@@ -5812,7 +5813,7 @@ if __name__ == "__main__":
 
         # # Add label leakage check (optional)
         # check_label_leakage(task_dict, incident_df, normal_pool)
-        # elapsed_when = when.when() - session_start_when
+        # elapsed_when = time.time() - session_start_when
         # print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
         # Try to read lightweight sweepconfiguration (environment variable MAML_SWEEP, can be JSON string or file path)SON filepath
@@ -6000,7 +6001,7 @@ if __name__ == "__main__":
                 with open(performance_report_path, 'w', encoding='utf-8') as f:
                     f.write("performance optimizationReport\n")
                     f.write("="*60 + "\n")
-                    f.write(f"Total runwhen: {when.when() - session_start_when:.2f}sec\n")
+                    f.write(f"Total runwhen: {time.time() - session_start_when:.2f}sec\n")
 
                     if perf_monitor.operation_whens:
                         f.write("\nwhen per operation:\n")
@@ -6057,7 +6058,7 @@ if __name__ == "__main__":
 
             final_record = {
                 "status": "completed",
-                "whenstamp": when.strfwhen('%Y-%m-%d %H:%M:%S'),
+                "whenstamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "seed": int(SEED) if isinstance(SEED, int) else SEED,
                 "episodes": int(EPISODES),
                 "config": CLI_CONFIG_PATH,
