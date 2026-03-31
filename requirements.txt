@@ -32,6 +32,6 @@ pyyaml>=6.0,<7
 # ===== Imbalanced-Learn (replaces old imblearn package) =====
 imbalanced-learn>=0.12,<0.13
 
-# ===== PyTorch(install separately based on machine environment) =====
-# To avoid installation failures on domestic mirrors or different CUDA versions, torch is not fixed in this file by default.
-# Please refer to the manual for installation commands (CPU/GPU require different index-url).
+# ===== PyTorch =====
+# CPU version for CodeOcean compatibility
+torch>=2.0.0,<3.0.0

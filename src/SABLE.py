@@ -585,14 +585,14 @@ def safe_read_csv(path, usecols=None, dtype_map=None, chunk_size=50000):
     3. Addprogressdisplay
     """
     try:
-        with performance monitor whenr(f"Read{os.path.basename(path)}"):
+        with perf_monitor.whenr(f"Read{os.path.basename(path)}"):
             return pd.read_csv(path, usecols=usecols, dtype=dtype_map)
     except (pd.errors.ParserError, MemoryError):
         print(f"[performance optimization] {path} file too largeuse optimized chunked reading (chunk_size={chunk_size})...")
         chunks = []
         total_rows = 0
 
-        with performance monitor whenr(f"chunked reading{os.path.basename(path)}"):
+        with perf_monitor.whenr(f"chunked reading{os.path.basename(path)}"):
             try:
                 for i, chunk in enumerate(pd.read_csv(path, usecols=usecols, dtype=dtype_map, chunksize=chunk_size)):
                     chunks.append(chunk)
@@ -977,7 +977,7 @@ def _record_proc_info(proc_info: Dict[str, List[int]]):
 def check_support_quality(support_x):
     """checksupport set forbasic qualityreturn discovered problematic variances"""
     issues = {}
-    ifsupport_x.shape[0] < 2:
+    if support_x.shape[0] < 2:
         issues["too_few_samples"] = int(support_x.shape[0])
 
     # calculate each column variance for subsequent analysis
@@ -1020,10 +1020,10 @@ def standardize_with_support(support_x, query_x):
         keep_mask[zero_var_cols] = False
 
     # Optimizeavoid unnecessary copiesuse views
-   support_reduced =support_x[:, keep_mask]
+    support_reduced =support_x[:, keep_mask]
     query_reduced = query_x[:, keep_mask]
 
-    ifsupport_reduced.shape[1] == 0:
+    if support_reduced.shape[1] == 0:
         print("WARNING: all features have zero variancestandardization results willall be zero")
         # Optimization: pre-allocate zero array with correct data type
         sx = np.zeros_like(support_x, dtype=np.float32)
@@ -1047,7 +1047,7 @@ def standardize_with_support(support_x, query_x):
             print(f"Tip: for low variance columns {valid_low_var_cols} add perturbation1e-8")
             # Optimizeuse advanced index batchoperations
             col_positions = np.searchsorted(current_indices, valid_low_var_cols)
-           support_reduced[:, col_positions] += 1e-8
+            support_reduced[:, col_positions] += 1e-8
             query_reduced[:, col_positions] += 1e-8
             perturbed_cols_original = valid_low_var_cols
 
@@ -1063,7 +1063,7 @@ def standardize_with_support(support_x, query_x):
                                 query_reduced[:min(5, len(query_reduced))]])
     scaler_all = StandardScaler(with_mean=True, with_std=True).fit(combined_sample)
     leak_warning = np.allclose(scaler.mean_, scaler_all.mean_, rtol=1e-3) and \
-                   np.allclose(scaler.scale_, scaler_all.scale_, rtol=1e-3)
+                    np.allclose(scaler.scale_, scaler_all.scale_, rtol=1e-3)
 
     if leak_warning:
         print("WARNING:support set with complete datafitted parameters are consistentdata leakage may exist")
@@ -1099,7 +1099,7 @@ def standardize_with_support(support_x, query_x):
 
 def test_standardize_with_support():
     """use random data to validate whether standardization process has data leakage"""
-   support = np.random.randn(8, FEATURE_DIM)
+    support = np.random.randn(8, FEATURE_DIM)
     query = np.random.randn(4, FEATURE_DIM) + 5
     sx, qx, _ = standardize_with_support(support, query)
     scaler_s = StandardScaler().fit(support)
@@ -1120,7 +1120,7 @@ def diagnose_standardization(func):
 
         result = func(*args, **kwargs)
         if not isinstance(result, (tuple, list)) or len(result) < 7:
-            raise valueError("diagnostic function must returnresults tuple containing original features")
+            raise ValueError("diagnostic function must returnresults tuple containing original features")
 
         sx, sy, qx, qy, info,support_x_raw, query_x_raw = result
 
@@ -1144,9 +1144,9 @@ def diagnose_standardization(func):
             print("[Diagnostic] Support set is empty, cannot calculate standardization statistics.")
 
         # check 2: compare originalsupport set and query setdistribution centers
-       support_raw_np = _ensure_numpy(support_x_raw)
+        support_raw_np = _ensure_numpy(support_x_raw)
         query_raw_np = _ensure_numpy(query_x_raw)
-        ifsupport_raw_np.size > 0 and query_raw_np.size > 0:
+        if support_raw_np.size > 0 and query_raw_np.size > 0:
             scaler_s = StandardScaler().fit(support_raw_np)
             scaler_q = StandardScaler().fit(query_raw_np)
             if np.allclose(scaler_s.mean_, scaler_q.mean_):
@@ -1426,14 +1426,14 @@ def _unwrap_sample_task(result):
 
     if len(result) >= 7:
         sx, sy, qx, qy, info = result[:5]
-       support_x_raw, query_x_raw = result[5], result[6]
+        support_x_raw, query_x_raw = result[5], result[6]
         if isinstance(info, dict):
             info = dict(info)
-            info.setdefault("support_x_raw",support_x_raw)
+            info.setdefault("support_x_raw", support_x_raw)
             info.setdefault("query_x_raw", query_x_raw)
         return sx, sy, qx, qy, info
 
-    raise valueError("sample_task returned results insufficient elementscannot unpack")
+    raise ValueError("sample_task returned results insufficient elementscannot unpack")
 
 
 def sample_task(task_dict, normal_pool, *,
@@ -1465,7 +1465,7 @@ def sample_task(task_dict, normal_pool, *,
     Positive class: specific type of anomaly samples
         data source: from task_dict extracted exception samples
         Quantity: Each task has K_SHOT + Q_SHOT = 5 + 10 = 15 positive samples
-           support set: 5 positive samples(for adaptation)
+            support set: 5 positive samples(for adaptation)
             query set: 10 positive samplesForTest
         Featurefeature dimensions for FEATURE_DIMsensor count × 25 time points of difference sequence
 
@@ -1479,16 +1479,16 @@ def sample_task(task_dict, normal_pool, *,
                 Query Set10 negative samples
                 total: 15 negative samples
             oc_mamlMode
-               support set: 0 negative samplesonly use positive class for adaptation
+                support set: 0 negative samplesonly use positive class for adaptation
                 Query Set10 negative samples
                 total: 10 negative samples
 
     EachTaskin
     one_vs_restMode
-       support set: 5 positive samples (10 samples of a certain class) + 5 negative samples (other anomaly samples: samples: 5 × 0.5 = 2.5 → 2 (towards rounding down) normal samples5 - 2 = 3 → 3) [Foradaptation]
+        support set: 5 positive samples (10 samples of a certain class) + 5 negative samples (other anomaly samples: samples: 5 × 0.5 = 2.5 → 2 (towards rounding down) normal samples5 - 2 = 3 → 3) [Foradaptation]
         query set: 10 positive samples (10 samples of a certain class) + 10 negative samples (other anomaly samples: samples: 10 × 0.5 = 5 → 5 (towards rounding down) normal samples10 - 5 = 5 → 5) [ForTest]
     oc_mamlMode
-       support set: 5 positive samples(10 samples of a certain class) [only for adaptation]
+        support set: 5 positive samples(10 samples of a certain class) [only for adaptation]
         query set: 10 positive samples(10 samples of a certain class) + 10 negative samples(similarly: 5 normalamples + 5OtherClassexceptionSample) [ForTest]
     """
     assert incident_df_all is not None, "sample_task necessary incident_df_all"
@@ -1628,7 +1628,7 @@ def sample_task(task_dict, normal_pool, *,
         if need_other_abnormal > 0:
             # Get tasks from current dataset excluding other anomaly class tasks of current family
             other_tasks = [k for k in current_split_tasks.keys()
-                           if family_of(k) != current_family]
+                            if family_of(k) != current_family]
 
             if debug:
                 print(f"[sample_task] currentfamily: {current_family}")
@@ -1727,7 +1727,7 @@ def sample_task(task_dict, normal_pool, *,
 
             elif hard_strategy == "loss":
                 if model is None:
-                    raise valueError("hard_strategy='loss' requires passing model")
+                    raise ValueError("hard_strategy='loss' requires passing model")
                 model.eval()
                 with torch.no_grad():
                     # usesupport's mean/variance to standardize negatives to training space
@@ -1763,23 +1763,23 @@ def sample_task(task_dict, normal_pool, *,
 
         # ---------- Groupsupport / query ----------
         if mode == "oc_maml":
-           support_x = np.array(pos_support, dtype=float)
-           support_y = np.array([1] * k_shot, dtype=int)
+            support_x = np.array(pos_support, dtype=float)
+            support_y = np.array([1] * k_shot, dtype=int)
             # oc_maml query: positive q_shot + hard negative q_shot
             query_x = np.array(pos_query + neg_clean[:q_shot], dtype=float)
             query_y = np.array([1] * q_shot + [0] * q_shot, dtype=int)
         else:
             neg_support = neg_clean[:k_shot]
             neg_query = neg_clean[k_shot:k_shot + q_shot]
-           support_x = np.array(pos_support + neg_support, dtype=float)
-           support_y = np.array([1] * k_shot + [0] * k_shot, dtype=int)
+            support_x = np.array(pos_support + neg_support, dtype=float)
+            support_y = np.array([1] * k_shot + [0] * k_shot, dtype=int)
             query_x = np.array(pos_query + neg_query, dtype=float)
             query_y = np.array([1] * q_shot + [0] * q_shot, dtype=int)
 
         # ---------- standardization (keep your original ----------
-       support_x_raw =support_x.copy()
+        support_x_raw =support_x.copy()
         query_x_raw = query_x.copy()
-       support_x, query_x, norm_info = standardize_with_support(support_x, query_x)
+        support_x, query_x, norm_info = standardize_with_support(support_x, query_x)
         using_resampled = any(isinstance(item, dict) and "features" in item for item in pos_pairs_all)
         # record sampling infofacilitate subsequent analysis of sampling distribution
         info = {
@@ -1802,7 +1802,7 @@ def sample_task(task_dict, normal_pool, *,
             torch.tensor(query_x, dtype=torch.float32),
             torch.tensor(query_y, dtype=torch.long),
             info,
-           support_x_raw,
+            support_x_raw,
             query_x_raw,
         )
 
@@ -2065,8 +2065,8 @@ class StandardMLP(BaseModel):
         x = F.linear(x, weights['fc1.weight'], weights.get('fc1.bias'))
         if self.training and 'bn1.weight' in weights:
             x = F.batch_norm(x, running_mean=None, running_var=None,
-                           weight=weights.get('bn1.weight'), bias=weights.get('bn1.bias'),
-                           training=True, momentum=0.1)
+                            weight=weights.get('bn1.weight'), bias=weights.get('bn1.bias'),
+                            training=True, momentum=0.1)
         x = F.gelu(x)
         if self.training:
             x = F.dropout(x, p=self.dropout_rate)
@@ -2074,8 +2074,8 @@ class StandardMLP(BaseModel):
         x = F.linear(x, weights['fc2.weight'], weights.get('fc2.bias'))
         if self.training and 'bn2.weight' in weights:
             x = F.batch_norm(x, running_mean=None, running_var=None,
-                           weight=weights.get('bn2.weight'), bias=weights.get('bn2.bias'),
-                           training=True, momentum=0.1)
+                            weight=weights.get('bn2.weight'), bias=weights.get('bn2.bias'),
+                            training=True, momentum=0.1)
         x = F.gelu(x)
         if self.training:
             x = F.dropout(x, p=self.dropout_rate)
@@ -2083,8 +2083,8 @@ class StandardMLP(BaseModel):
         x = F.linear(x, weights['fc3.weight'], weights.get('fc3.bias'))
         if self.training and 'bn3.weight' in weights:
             x = F.batch_norm(x, running_mean=None, running_var=None,
-                           weight=weights.get('bn3.weight'), bias=weights.get('bn3.bias'),
-                           training=True, momentum=0.1)
+                            weight=weights.get('bn3.weight'), bias=weights.get('bn3.bias'),
+                            training=True, momentum=0.1)
         x = F.gelu(x)
         if self.training:
             x = F.dropout(x, p=self.dropout_rate)
@@ -2092,8 +2092,8 @@ class StandardMLP(BaseModel):
         x = F.linear(x, weights['fc4.weight'], weights.get('fc4.bias'))
         if self.training and 'bn4.weight' in weights:
             x = F.batch_norm(x, running_mean=None, running_var=None,
-                           weight=weights.get('bn4.weight'), bias=weights.get('bn4.bias'),
-                           training=True, momentum=0.1)
+                            weight=weights.get('bn4.weight'), bias=weights.get('bn4.bias'),
+                            training=True, momentum=0.1)
         x = F.gelu(x)
         # Do not apply dropout before output layer
 
@@ -2362,7 +2362,7 @@ def resolve_activation_fn(name: str) -> nn.Module:
         "elu": nn.ELU,
     }
     if name_lower not in activation_map:
-        raise valueError("unsupported activation function typeplease select from relu/gelu/silu/elu")
+        raise ValueError("unsupported activation function typeplease select from relu/gelu/silu/elu")
     return activation_map[name_lower]()
 
 
@@ -2372,7 +2372,7 @@ class MultiHeadSelfAttention(nn.Module):
     def __init__(self, d_model: int, nhead: int, dropout_rate: float) -> None:
         super().__init__()
         if d_model % nhead != 0:
-            raise valueError("d_model must be divisible by nheadto evenly divide each attention head's dimensions")
+            raise ValueError("d_model must be divisible by nheadto evenly divide each attention head's dimensions")
         self.d_model = d_model
         self.nhead = nhead
         self.head_dim = d_model // nhead
@@ -2471,10 +2471,10 @@ class StandardTransformer(BaseModel):
         # parse sequence length and channel countensureInputCanreshape to [batch, seq_len, feature_channels]
         resolved_channels = feature_channels if feature_channels is not None else FEATURE_CHANNELS
         if resolved_channels <= 0:
-            raise valueError("feature_channels must be positive integerensure sequence dimension can be divided")
+            raise ValueError("feature_channels must be positive integerensure sequence dimension can be divided")
         if sequence_length is None:
             if input_dim % resolved_channels != 0:
-                raise valueError(
+                raise ValueError(
                     "input_dim cannot be divided by feature_channelsplease explicitly pass sequence_length to match original sequence length"
                 )
             sequence_length = input_dim // resolved_channels
@@ -2519,7 +2519,7 @@ class StandardTransformer(BaseModel):
         if x.dim() != 2:
             raise ValueError("Transformer input must be [batch, feature_dim], please ensure preprocessing output is correct")
         if x.size(1) != self.input_dim:
-            raise valueError("input feature dimensions inconsistent with model initializationplease check feature concatenation process")
+            raise ValueError("input feature dimensions inconsistent with model initializationplease check feature concatenation process")
 
         # reshape to [batch, seq_len, feature_channels] then perform linear projection
         batch_size = x.size(0)
@@ -2559,7 +2559,7 @@ class B_SMALL_MultiHeadSelfAttention(nn.Module):
     def __init__(self, d_model: int, nhead: int, dropout_rate: float) -> None:
         super().__init__()
         if d_model % nhead != 0:
-            raise valueError("d_model must be divisible by nheadto evenly divide each attention head's dimensions")
+            raise ValueError("d_model must be divisible by nheadto evenly divide each attention head's dimensions")
         self.d_model = d_model
         self.nhead = nhead
         self.head_dim = d_model // nhead
@@ -2660,10 +2660,10 @@ class B_SMALL_Transformer(BaseModel):
         # parse sequence length and channel countensureInputCanreshape to [batch, seq_len, feature_channels]
         resolved_channels = feature_channels if feature_channels is not None else FEATURE_CHANNELS
         if resolved_channels <= 0:
-            raise valueError("feature_channels must be positive integerensure sequence dimension can be divided")
+            raise ValueError("feature_channels must be positive integerensure sequence dimension can be divided")
         if sequence_length is None:
             if input_dim % resolved_channels != 0:
-                raise valueError(
+                raise ValueError(
                     "input_dim cannot be divided by feature_channelsplease explicitly pass sequence_length to match original sequence length"
                 )
             sequence_length = input_dim // resolved_channels
@@ -2708,7 +2708,7 @@ class B_SMALL_Transformer(BaseModel):
         if x.dim() != 2:
             raise ValueError("Transformer input must be [batch, feature_dim], please ensure preprocessing output is correct")
         if x.size(1) != self.input_dim:
-            raise valueError("input feature dimensions inconsistent with model initializationplease check feature concatenation process")
+            raise ValueError("input feature dimensions inconsistent with model initializationplease check feature concatenation process")
 
         # reshape to [batch, seq_len, feature_channels] then perform linear projection
         batch_size = x.size(0)
@@ -3305,7 +3305,7 @@ def train_maml(
         model_kwargs = {}
 
     if run_log_dir is None:
-        raise valueError("train_maml necessary run_log_dir points to current run log directory")
+        raise ValueError("train_maml necessary run_log_dir points to current run log directory")
 
     # createcheckpointDirectory
     os.makedirs(checkpoint_dir, exist_ok=True)
@@ -3689,7 +3689,7 @@ def train_maml(
             if use_comparison_model and comparison_model_name in ["ProtoNet", "TSA-MAML", "TSA_MAML"]:
                 # ProtoNetAndTSA-MAMLUseEachofepisodicTrainingMethods
                 # ConstructdictionaryFormatofsupportAndquery
-               support = {'x': sx, 'y': sy}
+                support = {'x': sx, 'y': sy}
                 query = {'x': qx, 'y': qy}
 
                 # adjustusemodelsoftrain_episodeMethods
@@ -4317,9 +4317,9 @@ def select_threshold_with_recall_floor(y_true,
     """
     Based on“recall floorconstraint”of threshold valueSelect
     1) exhaustively try one group of threshold valuesfilter Recall >= r_min and Precision >= precision_min candidate set
-       If enforce_pos_rate_cap=True, also require positive class prediction rate pos_rate <= pos_rate_cap
+        If enforce_pos_rate_cap=True, also require positive class prediction rate pos_rate <= pos_rate_cap
     2) from candidates select F_beta maximum threshold value as t*
-       If infeasible (no threshold value satisfy), then fallback to select“Recall highest”of threshold value
+        If infeasible (no threshold value satisfy), then fallback to select“Recall highest”of threshold value
     3) for selected threshold value do EMA smoothing (if provide prev_thr), reduce fluctuations between adjacent evaluations
     4) Return t* and at t* under Precision/Recall/F_beta/positive class prediction rate/feasibility
 
@@ -4962,7 +4962,7 @@ def get_model(model_type: str = "mlp", input_dim: int = FEATURE_DIM, model_kwarg
     model_type_key = model_type.strip().lower()
     if model_type_key not in MODEL_REGISTRY:
         available = ", ".join(sorted(MODEL_REGISTRY.keys()))
-        raise valueError(f"unknownofmodelsType: {model_type}optionalvalue: {available}")
+        raise ValueError(f"unknownofmodelsType: {model_type}optionalvalue: {available}")
 
     model_cls = MODEL_REGISTRY[model_type_key]
     try:
@@ -5012,7 +5012,7 @@ def report_sparsity(model: nn.Module, threshold: float = 3.0, save_dir: str = "m
     parameters:
         model (nn.Module): Traininged B-SMALL model.
         threshold (float): Log_alpha threshold value to decide if weight is pruned.
-                           SVD paper suggested value is 3.0.
+                            SVD paper suggested value is 3.0.
         save_dir (str): SaveFiguresAndReportofDirectoryDefault is "metrics"
 
     Generatefile:
@@ -5075,7 +5075,7 @@ def report_sparsity(model: nn.Module, threshold: float = 3.0, save_dir: str = "m
     sparsity_percentage = 100.0 * pruned_weights / total_weights
 
     # Print console report (keep original functionality)
-    print(f"\n========== Model Sparsity Report =========="
+    print(f"\n========== Model Sparsity Report ==========")
     print(f"pruningthreshold value (log_alpha): > {threshold}")
     print(f"Total learnable weights: {total_weights}")
     print(f"pruned byweight: {pruned_weights}")
@@ -5719,7 +5719,7 @@ if __name__ == "__main__":
         # torch.cuda.manual_seed_all(SEED) # GPU Random seed
 
         # ===== OptimizeData Loading =====
-        with performance monitor whenr("Data Loading"):
+        with perf_monitor.whenr("Data Loading"):
             perf_monitor.record_metrics("StartingData Loading")
 
             # Reading large file, specify data types to reduce memory usage
@@ -5743,11 +5743,11 @@ if __name__ == "__main__":
             incident_path = str(Path(raw_dir) / incident_file)
             normal_path = str(Path(raw_dir) / normal_file)
 
-            with performance monitor whenr("LoadincidentData"):
+            with perf_monitor.whenr("LoadincidentData"):
                 incident_df = safe_read_csv(incident_path, usecols=lambda c: c in incident_cols, dtype_map=dtype_map)
                 perf_monitor.record_metrics("incidentData Loadingcompleted")
 
-            with performance monitor whenr("LoadnormalData"):
+            with perf_monitor.whenr("LoadnormalData"):
                 normal_df = safe_read_csv(normal_path, usecols=lambda c: c in normal_cols, dtype_map=dtype_map)
                 perf_monitor.record_metrics("normalData Loadingcompleted")
 
@@ -5759,9 +5759,9 @@ if __name__ == "__main__":
         print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
         # ===== OptimizeTaskbuild =====
-        with performance monitor whenr("Taskbuild"):
+        with perf_monitor.whenr("Taskbuild"):
             # Build tasks (with cache)
-            with performance monitor whenr("buildexception tasks"):
+            with perf_monitor.whenr("buildexception tasks"):
                 task_dict = load_or_build_task_dict(incident_df, incident_path)
                 perf_monitor.record_metrics("exception tasksConstructcompleted")
 
@@ -5770,7 +5770,7 @@ if __name__ == "__main__":
             print(f"currentcumulativeRunwhen: {elapsed_when:.2f}sec / {elapsed_when / 60:.2f}minutes / {elapsed_when / 3600:.2f}Smallwhen")
 
             # Build normal pools (with cache)
-            with performance monitor whenr("buildnormal pools"):
+            with perf_monitor.whenr("buildnormal pools"):
                 normal_pool_raw = load_or_build_normal_pool(normal_df, normal_path)
                 # Pre-process normal pools
                 normal_pool, drop_len, drop_nan = _prefilter_normal_pool(normal_pool_raw, expected_len=FEATURE_DIM)
@@ -5789,7 +5789,7 @@ if __name__ == "__main__":
 
         mode = "one_vs_rest"  # or "oc_maml"
 
-        print("=========== Task Construction Complete ==========="
+        print("=========== Task Construction Complete ===========")
         print(
             f"Normal sample count (original/kept): {len(normal_pool_raw)}/{len(normal_pool)}  | Dropped (Length/NaN): {drop_len}/{drop_nan}")
         print(f"Mode: {mode}")
