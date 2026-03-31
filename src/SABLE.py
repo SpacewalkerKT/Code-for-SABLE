@@ -321,11 +321,18 @@ class StreamToLogger:
         self.logger = logger
         self.level = level
         self.linebuf = ''
+        self._in_write = False  # Recursion guard
 
     def write(self, buf):
         """Write cache line by line and send to corresponding log level"""
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.level, line.rstrip())
+        if self._in_write or not buf:
+            return  # Prevent recursion
+        self._in_write = True
+        try:
+            for line in buf.rstrip().splitlines():
+                self.logger.log(self.level, line.rstrip())
+        finally:
+            self._in_write = False
 
     def flush(self):
         """Compatible withfileinterfaceofFlush methodNo operation needed here"""
