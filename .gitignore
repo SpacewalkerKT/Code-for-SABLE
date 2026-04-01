@@ -79,25 +79,17 @@ src/checkpoints/
 src/artifacts/
 
 # ------------------------------------------------------------
-# Data Files (Privacy)
+# Data Directories (Complete Exclusion)
 # ------------------------------------------------------------
-# Keep directory structure but ignore data files
-data/raw/*.csv
-data/raw/*.xlsx
-data/raw/*.parquet
-data/processed/*.csv
-data/processed/*.pkl
-data/processed/*.parquet
-data/cache/*.pkl
-data/cache/*.pt
+# Ignore entire data/ directory to prevent accidental commits
+# data/ contains large CSV files (410 MB+) that should not be in Git
+data/
 
-# Keep .gitkeep files
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-!data/cache/.gitkeep
-
-# Old data directories
-data/raw/full_results_2024/
+# If you need to keep directory structure, uncomment below:
+# !data/.gitkeep
+# !data/raw/.gitkeep
+# !data/processed/.gitkeep
+# !data/cache/.gitkeep
 
 # ------------------------------------------------------------
 # Temporary & Generated Files
