@@ -1,6 +1,7 @@
 # ============================================================
 # SABLE Project .gitignore
-# For IEEE OJ-ITS Paper Reproducibility
+# Sparse Adaptive Balanced Learning for Event Classification
+# IEEE OJ-ITS Paper Reproducibility
 # ============================================================
 
 # ------------------------------------------------------------
@@ -16,7 +17,6 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/
@@ -61,35 +61,55 @@ env/
 *.ipynb_checkpoints
 
 # ------------------------------------------------------------
-# Output Directories
+# Testing & Coverage
 # ------------------------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.ruff_cache/
+
+# ------------------------------------------------------------
+# Data & Outputs (Complete Exclusion)
+# ------------------------------------------------------------
+# Large data files (410 MB+) - should not be in Git
+data/
+
+# Experiment outputs and results
+results/
 outputs/
 runs/
-results/
 cache/
 metrics/
 figures/
 logs/
 logs_remote/
 outputs_remote/
-cloud_server_artifacts/
-results_20260210_170129/
+
+# Model checkpoints and artifacts
 checkpoints/
 src/checkpoints/
 src/artifacts/
+*.pkl
+*.pt
+*.pth
+*.ckpt
+
+# Cloud deployment artifacts
+cloud_server_artifacts/
+results_20260210_170129/
 
 # ------------------------------------------------------------
-# Data Directories (Complete Exclusion)
+# Experiment Outputs
 # ------------------------------------------------------------
-# Ignore entire data/ directory to prevent accidental commits
-# data/ contains large CSV files (410 MB+) that should not be in Git
-data/
-
-# If you need to keep directory structure, uncomment below:
-# !data/.gitkeep
-# !data/raw/.gitkeep
-# !data/processed/.gitkeep
-# !data/cache/.gitkeep
+experiments/outputs/
+experiments/results/
+experiments/logs/
 
 # ------------------------------------------------------------
 # Temporary & Generated Files
@@ -99,18 +119,21 @@ data/
 *.bak
 *.bak_*
 
-# Result files
+# Result files (CSV, Excel, etc.)
 *.csv
 !requirements.txt
-!data/processed/task_sampling_summary.csv
+*.xlsx
+*.xls
+*.parquet
 
-# Documentation files (not for code)
+# ------------------------------------------------------------
+# Documentation (excluding paper PDFs)
+# ------------------------------------------------------------
 *.docx
 *.doc
 *.pdf
 !docs/paper/*.pdf
-
-# Archives
+!docs/**/*.pdf
 
 # ------------------------------------------------------------
 # OS Generated Files
@@ -139,33 +162,8 @@ docs/archive/
 docs/legacy/
 
 # ------------------------------------------------------------
-# Testing & Coverage
+# Project-Specific Files
 # ------------------------------------------------------------
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-
-# ------------------------------------------------------------
-# Experimental Files (Keep Structure)
-# ------------------------------------------------------------
-# Keep experiment configs but not outputs
-experiments/outputs/
-experiments/results/
-experiments/logs/
-
-# ------------------------------------------------------------
-# Misc
-# ------------------------------------------------------------
-*.pkl
-*.pt
-*.pth
-*.ckpt
-!outputs/.gitkeep
-!runs/.gitkeep
-!outputs/checkpoints/.gitkeep
-
 # Task sampling logs
 task_sampling_log.csv
 task_sampling_summary.csv
