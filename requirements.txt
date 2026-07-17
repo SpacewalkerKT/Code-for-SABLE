@@ -1,48 +1,24 @@
-# Common dependencies (auto-adapt by Python version to avoid building old versions from source on Python 3.12)
-
-# ===== NumPy =====
+# Python 3.9-3.10
 numpy>=1.21,<1.26; python_version < "3.11"
-numpy>=2.0,<3.0; python_version >= "3.11"
-
-# ===== Pandas =====
 pandas>=1.3,<2.0; python_version < "3.11"
-pandas>=2.2,<3.0; python_version >= "3.11"
-
-# ===== SciPy =====
 scipy>=1.7,<1.11; python_version < "3.11"
-scipy>=1.11,<2.0; python_version >= "3.11"
-
-# ===== Scikit-Learn =====
 scikit-learn>=1.0,<1.3; python_version < "3.11"
-scikit-learn>=1.4,<1.6; python_version >= "3.11"
-
-# ===== Statsmodels =====
 statsmodels>=0.13,<0.14; python_version < "3.11"
-statsmodels>=0.14.2,<0.15; python_version >= "3.11"
-
-# ===== Plotting =====
 matplotlib>=3.5,<3.7; python_version < "3.11"
-matplotlib>=3.8,<3.10; python_version >= "3.11"
 seaborn>=0.11.2,<0.12; python_version < "3.11"
-seaborn>=0.13,<0.14; python_version >= "3.11"
 
-# ===== YAML =====
+# Python 3.11+
+numpy>=2.0,<3.0; python_version >= "3.11"
+pandas>=2.2,<4.0; python_version >= "3.11"
+scipy>=1.11,<2.0; python_version >= "3.11"
+scikit-learn>=1.4,<2.0; python_version >= "3.11"
+statsmodels>=0.14.2,<1.0; python_version >= "3.11"
+matplotlib>=3.8,<4.0; python_version >= "3.11"
+seaborn>=0.13,<1.0; python_version >= "3.11"
+
 pyyaml>=6.0,<7
-
-# ===== Imbalanced-Learn (replaces old imblearn package) =====
-imbalanced-learn>=0.12,<0.13
-
-# ===== PyTorch =====
-# CPU version for CodeOcean compatibility
-torch>=2.0.0,<3.0.0
-torchvision>=0.15.0,<0.20.0
-
-# ===== TensorBoard =====
-# For experiment tracking and visualization
+imbalanced-learn>=0.12,<1.0
+torch>=2.0,<3.0
 tensorboard>=2.12,<3.0
-
-# ===== Progress Bars =====
 tqdm>=4.65,<5.0
-
-# ===== System Monitoring =====
-psutil>=5.9,<6.0
+psutil>=5.9,<8.0

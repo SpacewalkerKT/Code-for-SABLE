@@ -379,8 +379,8 @@ USE_EARLY_STOPPING = True  # enabledearly stopping
 VALIDATION_FREQUENCY = 10  # ValidationFrequency
 LOG_FREQUENCY = 1  # logOutputFrequency
 
-print(f"[performance optimization] Performanceancemonitor: {'enabled' if ENABLE_PERFORMANCE_MONITORING else 'disabled'}")
-print(f"[performance optimization] Garbage collection: {'enabled' if ENABLE_GARBAGE_COLLECTION else 'disabled'} (Frequency: Every{GC_FREQUENCY}round)")
+print(f"[performance optimization] Performance monitor: {'enabled' if ENABLE_PERFORMANCE_MONITORING else 'disabled'}")
+print(f"[performance optimization] Garbage collection: {'enabled' if ENABLE_GARBAGE_COLLECTION else 'disabled'} (Frequency: Every {GC_FREQUENCY} rounds)")
 
 # ===== recall priority and threshold schedulingconfigurationnewly added =====
 # NOTE: Use this parameter during validation phase based on "recall floor + F_beta maximization" select thresholds, and use for early stopping / optimal model selection with test set frozen threshold value evaluation.
@@ -399,8 +399,8 @@ LADDER_MARGIN = 0.03      # when recall withinis generally higher than (current 
 LADDER_STEP = 0.02        # adjustment step size
 
 # TrainingOutputwithValidationEvaluationFrequencyDecouple original report_every
-LOG_EVERY = 1             # Traininging side log print frequency: print every episode
-EVAL_EVERY = 10           # validation and early stopping check frequencyEvery10roundExecuteOnce
+LOG_EVERY = 1             # Training side log print frequency: print every episode
+EVAL_EVERY = 10           # validation and early stopping check frequency: every 10 rounds
 
 # ===== feature modeconfigurationTo facilitate switching 75-dim and 25-dimExperiments =====
 FEATURE_MODE = os.environ.get("MAML_FEATURE_MODE", "volume_only")  # optional"full""volume_only"
@@ -416,7 +416,7 @@ FEATURE_TYPES = _FEATURE_TYPE_MAP[FEATURE_MODE]
 FEATURE_CHANNELS = len(FEATURE_TYPES)
 FEATURE_DIM = FEATURE_CHANNELS * 25
 
-print(f"[Feature Config] Current mode = {FEATURE_MODE}Sensor types = {FEATURE_CHANNELS}Inputdimension = {FEATURE_DIM}")
+print(f"[Feature Config] mode = {FEATURE_MODE}, sensor types = {FEATURE_CHANNELS}, input dimension = {FEATURE_DIM}")
 
 # ===== class weight fixed switchTo emphasize recall =====
 USE_CLASS_WEIGHT = True      # whether to enable class weightingcore SABLE functionality
@@ -549,7 +549,7 @@ Every50episodeAutomaticSavecheckpointto checkpoints/ Directory
 manually specify resume pointset resume_from='checkpoint_1000.pth'
 Start from beginning: delete checkpoints/ directory or select 'no resume' at promptResume
 checkpoint cleanupautomatically keeprecent3checkpointdelete old to save space
-EventuallymodelsSaveTraininging completeafterSaveEventuallymodelsfor final_model.pth
+EventuallymodelsSaveTraining completeafterSaveEventuallymodelsfor final_model.pth
 '''
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -1730,7 +1730,7 @@ def sample_task(task_dict, normal_pool, *,
                 # L2 distance to positive class prototypesmaller is harder
                 # prototype in z-space is 0-vectorso equivalent to ||neg_z||
                 scores = np.linalg.norm(neg_z, ord=2, axis=1)
-                # Select minimal need_neg 
+                # Select minimal need_neg
                 sel_idx = np.argsort(scores)[:need_neg]
 
             elif hard_strategy == "loss":
@@ -1875,16 +1875,16 @@ class SparseVDLinear(nn.Module):
         # 1. Define learnable parameters
         # theta: mean of weights, this is model evaluation (when enabled) of "deterministic" weight.
         #        Initialized with Kaiming He initialization for stable training.
-        self.theta = nn.parameter(torch.empty(out_features, in_features))
+        self.theta = nn.Parameter(torch.empty(out_features, in_features))
 
         # log_sigma2: log of weight variance. Learned in log form to ensure variance (sigma^2) is always positive,
         #             and facilitates optimization. A small initial value (-10) means low initial weight variance,
         #             close to a deterministic network, aiding early training stability.
-        self.log_sigma2 = nn.parameter(torch.full((out_features, in_features), -10.0))
+        self.log_sigma2 = nn.Parameter(torch.full((out_features, in_features), -10.0))
 
         # Bias term is a standard deterministic parameter.
         if bias:
-            self.bias = nn.parameter(torch.empty(out_features))
+            self.bias = nn.Parameter(torch.empty(out_features))
         else:
             self.register_parameter('bias', None)
 
@@ -1919,7 +1919,7 @@ class SparseVDLinear(nn.Module):
         # self.training is nn.Module's built-inboolean value
         # model.train() sets it to True, model.eval() sets it to False.
         if self.training:
-            # Traininging mode: apply Local Reparameterization Trick
+            # Training mode: apply Local Reparameterization Trick
             # This is the core trick from SVD paper, moves noise from weights to activations,
             # greatly reducing gradient variance for stable training.
             # see SVD paper equation (17).
@@ -2278,10 +2278,10 @@ class LSTMLayer(nn.Module):
         self.hidden_size = hidden_size
 
         # LSTMweight
-        self.weight_ih = nn.parameter(torch.randn(4 * hidden_size, input_size))
-        self.weight_hh = nn.parameter(torch.randn(4 * hidden_size, hidden_size))
-        self.bias_ih = nn.parameter(torch.randn(4 * hidden_size))
-        self.bias_hh = nn.parameter(torch.randn(4 * hidden_size))
+        self.weight_ih = nn.Parameter(torch.randn(4 * hidden_size, input_size))
+        self.weight_hh = nn.Parameter(torch.randn(4 * hidden_size, hidden_size))
+        self.bias_ih = nn.Parameter(torch.randn(4 * hidden_size))
+        self.bias_hh = nn.Parameter(torch.randn(4 * hidden_size))
 
         self.dropout = nn.Dropout(dropout_rate)
         self.init_weights()
@@ -2502,7 +2502,7 @@ class StandardTransformer(BaseModel):
         self.embed_dropout = nn.Dropout(dropout_rate)
         self.pos_encoder = PositionalEncoding(d_model, max_len=self.sequence_length + 1)
         # add learnable CLS tokenfor aggregating global semantics
-        self.cls_token = nn.parameter(torch.zeros(1, 1, d_model))
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
         nn.init.trunc_normal_(self.cls_token, std=0.02)
 
         # build self-defined encoder layer stackavoid adapting official implementationleading to high-order gradient issues
@@ -2690,7 +2690,7 @@ class B_SMALL_Transformer(BaseModel):
         self.embed_dropout = nn.Dropout(dropout_rate)
         self.pos_encoder = PositionalEncoding(d_model, max_len=self.sequence_length + 1)
         # add learnable CLS tokenfor aggregating global semantics
-        self.cls_token = nn.parameter(torch.zeros(1, 1, d_model))
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
         nn.init.trunc_normal_(self.cls_token, std=0.02)
 
         # Build B-SMALL encoder layer stack
@@ -2977,7 +2977,7 @@ def compute_task_imbalance_metrics(train_tasks, normal_train, mode="one_vs_rest"
         print("Cannot generate valid task imbalance statistics")
         return df
 
-    print("\n=== Traininging Task Class Imbalance Statistics ===")
+    print("\n=== Training Task Class Imbalance Statistics ===")
     quantiles = df["ir"].quantile([0.1, 0.5, 0.9])
     print(f"IR quantiles: P10={quantiles.loc[0.1]:.2f} | P50={quantiles.loc[0.5]:.2f} | P90={quantiles.loc[0.9]:.2f}")
     print("Most extreme tasks:")
@@ -3345,7 +3345,7 @@ def train_maml(
     print(
         f"currentcumulativeRunwhen: {elapsed_since_session:.2f}sec / {elapsed_since_session / 60:.2f}minutes / {elapsed_since_session / 3600:.2f}Smallwhen")
 
-    # ===== Diagnose Traininging Data Class Imbalance and Density Structure =====
+    # ===== Diagnose Training Data Class Imbalance and Density Structure =====
     compute_task_imbalance_metrics(train_tasks, normal_train, mode=mode, other_abnormal_ratio=OTHER_ABNORMAL_RATIO)
     analyze_minority_density(train_tasks, normal_train, incident_df_all)
     summarize_rare_tasks(train_tasks, normal_train, log_path="task_sampling_log.csv", mode=mode)
@@ -4114,7 +4114,7 @@ def train_maml(
                     except OSError:
                         pass
 
-    # Traininging completeafterLoadoptimalmodels
+    # Training completeafterLoadoptimalmodels
     if best_state is not None:
         model.load_state_dict(best_state)
         print(f"Loaded optimal validation performance model (Val Acc={best_val:.3f})")
@@ -4153,7 +4153,7 @@ def train_maml(
     if class_weight_log_path and class_weight_records:
         pd.DataFrame(class_weight_records).to_csv(class_weight_log_path, index=False)
         print(f"Saved class weight log to {class_weight_log_path}")
-    print(f"Traininging and validation metrics saved to {metrics_dir} directory")
+    print(f"Training and validation metrics saved to {metrics_dir} directory")
 
     # ===== Final validation set evaluation for generating comparison plots =====
     if len(val_tasks) > 0:
@@ -4270,7 +4270,7 @@ def get_rmin_linear(current_ep: int,
     linear threshold increase adjustment function: based on current training progress, at linear region between will R_min from r_start gradually step increase to r_targetet
 
     parameterNOTE
-    - current_ep: CurrentTraininging episodesepisode1 Starting
+    - current_ep: CurrentTraining episodesepisode1 Starting
     - total_eps: planned total training episodesForCalculateprogress
     - r_start:   recall floorofstarting value
     - r_target:  recall flooroftargetvalue
@@ -4682,7 +4682,7 @@ def evaluate_on_split(
             results["best_threshold"] = float(best_th)
             results["best_f1"] = float(best_f1)
 
-    # Calculate family-level metrics (===== 
+    # Calculate family-level metrics (=====
     family_metrics = {}
     for fam, preds_list in fam_preds.items():
         labels = np.array(fam_labels[fam])
@@ -4698,7 +4698,7 @@ def evaluate_on_split(
         except Exception:
             f1 = 0.0
         # ===== calculate family-level ROC-AUC and PR-AUC =====
-        # 
+        #
         unique_labels = np.unique(labels)
         is_single_class = len(unique_labels) < 2
 
@@ -4725,7 +4725,7 @@ def evaluate_on_split(
     results["family_metrics"] = family_metrics
 
     # ===== newly addedSave y_true/y_scores to CSVFor Fig.2 PR Curve=====
-    # 
+    #
     if save_scores and len(all_probs) > 0 and len(all_labels) > 0:
         import pandas as pd
         from datewhen import datewhen
@@ -4759,7 +4759,7 @@ def evaluate_on_split(
             print(f"   Episode record count: {len(episode_auc_records)}")
 
             # 2) Save family-level file (aggregated from episode records)
-            # 
+            #
             family_agg_records = []
             skipped_single_class_count = 0
             for fam in family_metrics.keys():
@@ -5409,7 +5409,7 @@ if __name__ == "__main__":
                     try:
                         SEED = int(_seed)
                         #  Fix bug: re-set all random seeds after reading config file seed
-                        # Ensure data partitioning reproducibility 
+                        # Ensure data partitioning reproducibility
                         random.seed(SEED)
                         np.random.seed(SEED)
                         torch.manual_seed(SEED)
@@ -5418,13 +5418,13 @@ if __name__ == "__main__":
                         # Ensure CUDNN determinism
                         torch.backends.cudnn.deterministic = True
                         torch.backends.cudnn.benchmark = False
-                        print(f"[CLI] Random seed set to: {SEED}Data split will be fully reproducible")
+                        print(f"[CLI] Random seed set to {SEED}; data split is reproducible")
                     except Exception:
                         pass
                 if _lr_in is not None: lr_inner = float(_lr_in)
                 if _lr_me is not None: lr_meta = float(_lr_me)
                 if _inner is not None: inner_steps = int(_inner)
-                #  Fix bug: read k_shot and q_shotconfiguration 
+                #  Fix bug: read k_shot and q_shotconfiguration
                 # Problem: K_SHOT and Q_SHOT hardcoded to 5 and 10, config file training.k_shot/q_shot ignored
                 # Impact: K-shot sensitivity analysis experiments all used K=5, cannot validate effects of different K values
                 # Fix: read k_shot and q_shot from config file, override global variables
@@ -5518,7 +5518,7 @@ if __name__ == "__main__":
                     else:
                         print(f"[CLI] use_recall_priority = True")
 
-                #  fixBugLoadRecall prioritystrategy parameters2026-02-20fixed by 
+                #  fixBugLoadRecall prioritystrategy parameters2026-02-20fixed by
                 # ProblemConfig fileinof recall_priority.r_start/r_target/r_warmup_frac notbyLoad
                 # impact: actual run (when enabled) default value R_WARMUP_FRAC=0.0, lead to R_min fixed at 0.80
                 # fix: from config file load parameter, override code default value
@@ -5548,7 +5548,7 @@ if __name__ == "__main__":
                     if not USE_THRESHOLD_SEARCH:
                         print(f"[CLI] use_threshold_search = FalseWill use fixed threshold {FIXED_THRESHOLD}")
                     else:
-                        print(f"[CLI] use_threshold_search = TrueEnable adaptive threshold search")
+                        print(f"[CLI] use_threshold_search = True")
 
                 #  2026-02-27 Read sparse variational dropout switch (use_sparse_vd)
                 # fixed P4 ablation experiment invalidation issue: Config file set use_sparse_vd=false but code not read
@@ -5558,7 +5558,7 @@ if __name__ == "__main__":
                     if not USE_SPARSE_VD:
                         print(f"[CLI] use_sparse_vd = FalseWill use standard Transformer (no sparse variational dropout)")
                     else:
-                        print(f"[CLI] use_sparse_vd = TrueEnable SparseVDLinear layer")
+                        print(f"[CLI] use_sparse_vd = True")
 
                 #  2026-02-27 Read meta-learning framework switch (meta_learning)
                 # fixed P6 ablation experiment invalidation problem: Config file set meta_learning=false but code not read
@@ -5568,7 +5568,7 @@ if __name__ == "__main__":
                     if not USE_META_LEARNING:
                         print(f"[CLI] meta_learning = FalseWill use standard supervised learning (non-MAML)")
                     else:
-                        print(f"[CLI] meta_learning = TrueEnable MAML meta-learning framework")
+                        print(f"[CLI] meta_learning = True")
 
             # Map model (for comparison experiment config)
             _model = _cfg.get("model", {})
@@ -5620,7 +5620,7 @@ if __name__ == "__main__":
                 if _progress:
                     CLI_PROGRESS_JSONL = str(_progress)
 
-            # Traininging progress write interval (if provided)
+            # Training progress write interval (if provided)
             _eval_int = None
             if isinstance(_tr, dict):
                 _eval_int = _tr.get("eval_interval")
@@ -5634,7 +5634,7 @@ if __name__ == "__main__":
             print("\n" + "="*80)
             print("[CLI] YAMLConfig loaded")
             print("="*80)
-            print(f"[Traininging parameters]")
+            print(f"[Training parameters]")
             print(f"  EPISODES          = {EPISODES}")
             print(f"  SEED              = {SEED}")
             print(f"  lr_inner          = {lr_inner}")
@@ -5655,7 +5655,7 @@ if __name__ == "__main__":
             print(f"  USE_THRESHOLD_SEARCH          = {USE_THRESHOLD_SEARCH}")
             if not USE_THRESHOLD_SEARCH:
                 print(f"     FIXED_THRESHOLD            = {FIXED_THRESHOLD}")
-            print(f"\n[Otherconfiguration]")
+            print(f"\n[Other configuration]")
             print(f"  ANALYSIS_JSONL    = {CLI_ANALYSIS_JSONL}")
             print(f"  PROGRESS_JSONL    = {CLI_PROGRESS_JSONL}")
             print(f"  PROGRESS_INTERVAL = {PROGRESS_EVAL_INTERVAL}")
@@ -5885,7 +5885,7 @@ if __name__ == "__main__":
                 model_type = str(cfg.get("model_type", MODEL_TYPE))
                 model_kwargs = dict(cfg.get("model_kwargs", MODEL_KWARGS))
 
-                # Traininging hyperparameters (provide default values for quick filtering)
+                # Training hyperparameters (provide default values for quick filtering)
                 episodes_cfg = int(cfg.get("episodes", EPISODES))
                 patience_cfg = int(cfg.get("patience", patience))
                 inner_steps_cfg = int(cfg.get("inner_steps", inner_steps))

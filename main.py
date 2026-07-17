@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SABLE: Sparse Adaptive Balanced Learning for Event Classification
+SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
 
 Main entry point for training and evaluation of the SABLE framework.
 This script provides a unified interface for reproducing paper results.
@@ -11,7 +11,7 @@ Usage:
     python main.py --config experiments/configs/comparison/compare_maml_pilot.yaml --device cuda:0
 
 Paper:
-    SABLE: Sparse Adaptive Balanced Learning for Few-Shot Traffic Incident Classification
+    SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
     IEEE Open Journal of Intelligent Transportation Systems (OJ-ITS)
 
 Author: SABLE Research Team
@@ -31,7 +31,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="SABLE: Sparse Adaptive Balanced Learning for Event Classification",
+        description="SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -161,16 +161,16 @@ def print_banner():
     """Print the SABLE banner."""
     banner = """
 
-                                                                              
-                                   
-                            
-                                   
-                                   
-                     
-                           
-                                                                              
-   Sparse Adaptive Balanced Learning for Event Classification                 
-                                                                              
+
+
+
+
+
+
+
+
+   SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
+
 
 """
     print(banner)

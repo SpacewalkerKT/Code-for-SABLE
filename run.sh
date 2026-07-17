@@ -8,8 +8,8 @@
 #   ./run.sh                              # Use default configuration
 #   CONFIG=path/to/config.yaml ./run.sh   # Use custom configuration
 #
-# Default: experiments/configs/ablation/sable_full_pilot.yaml
-#           (Full SABLE model, 500 episodes)
+# Default: experiments/configs/ablation/sable_full.yaml
+#           (Full SABLE model; see YAML for exact training budget)
 ###############################################################################
 
 set -euo pipefail
@@ -43,7 +43,7 @@ log_error() {
 print_banner() {
     cat <<'EOF'
 ###############################################################################
-# SABLE: Sparse Adaptive Balanced Learning for Event Classification          #
+# SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection #
 # CodeOcean Execution Script                                                  #
 ###############################################################################
 EOF

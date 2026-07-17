@@ -1,176 +1,46 @@
-# ============================================================
-# SABLE Project .gitignore
-# Sparse Adaptive Balanced Learning for Event Classification
-# IEEE OJ-ITS Paper Reproducibility
-# ============================================================
-
-# ------------------------------------------------------------
 # Python
-# ------------------------------------------------------------
 __pycache__/
 *.py[cod]
-*$py.class
 *.pyo
-*.pyd
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# ------------------------------------------------------------
-# Virtual Environments
-# ------------------------------------------------------------
-venv/
+# Environments and secrets
+.env
 .venv/
+venv/
 ENV/
 env/
-.env/
 
-# ------------------------------------------------------------
-# IDE and Editors
-# ------------------------------------------------------------
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.project
-.pydevproject
-.settings/
-*.sublime-*
-.spyderproject
-.spyproject
+# Data
+data/*
+!data/README.md
+Code_for_SABLE/
 
-# ------------------------------------------------------------
-# Jupyter Notebook
-# ------------------------------------------------------------
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# ------------------------------------------------------------
-# Testing & Coverage
-# ------------------------------------------------------------
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.pyre/
-.ruff_cache/
-
-# ------------------------------------------------------------
-# Data & Outputs (Complete Exclusion)
-# ------------------------------------------------------------
-# Large data files (410 MB+) - should not be in Git
-data/
-
-# Experiment outputs and results
-results/
-outputs/
-runs/
+# Models and generated outputs
+*.pth
+*.pt
+*.ckpt
 cache/
-metrics/
-figures/
-logs/
-logs_remote/
-outputs_remote/
-
-# Model checkpoints and artifacts
 checkpoints/
 src/checkpoints/
-src/artifacts/
-*.pkl
-*.pt
-*.pth
-*.ckpt
+outputs/
+metrics/
+runs/
+results/
 
-# Cloud deployment artifacts
-cloud_server_artifacts/
-results_20260210_170129/
+# Archives
+*.zip
+*.tar
+*.tar.gz
 
-# ------------------------------------------------------------
-# Experiment Outputs
-# ------------------------------------------------------------
-experiments/outputs/
-experiments/results/
-experiments/logs/
-
-# ------------------------------------------------------------
-# Temporary & Generated Files
-# ------------------------------------------------------------
+# Logs and temporary files
 *.log
 *.tmp
 *.bak
 *.bak_*
 
-# Result files (CSV, Excel, etc.)
-*.csv
-!requirements.txt
-*.xlsx
-*.xls
-*.parquet
-
-# ------------------------------------------------------------
-# Documentation (excluding paper PDFs)
-# ------------------------------------------------------------
-*.docx
-*.doc
-*.pdf
-!docs/paper/*.pdf
-!docs/**/*.pdf
-
-# ------------------------------------------------------------
-# OS Generated Files
-# ------------------------------------------------------------
+# OS/editor
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 desktop.ini
-
-# ------------------------------------------------------------
-# Cloud Deployment (Not for GitHub)
-# ------------------------------------------------------------
-.cloudignore
-server_info.sh
-rollback_docs_reorg.sh
-
-# ------------------------------------------------------------
-# Documentation Archives
-# ------------------------------------------------------------
-docs/_backup/
-docs/archive/
-docs/legacy/
-
-# ------------------------------------------------------------
-# Project-Specific Files
-# ------------------------------------------------------------
-# Task sampling logs
-task_sampling_log.csv
-task_sampling_summary.csv
-efficiency_summary.csv
-docs_file_list.txt
-
-# Microsoft Office temp files
-~$*.docx
-~$*.xlsx
-~$*.pptx
+.vscode/
+.idea/
