@@ -1,4 +1,4 @@
-# SABLE: Sparse Bayesian Meta-Learning for Imbalanced Few-Shot Traffic Anomaly Detection
+# SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0+-orange.svg)](https://pytorch.org/)
@@ -8,7 +8,7 @@ This repository provides the revised SABLE implementation, documented experiment
 
 ## Overview
 
-SABLE is a few-shot traffic anomaly detection framework for single-channel traffic-volume sequences. The released configuration uses volume-only inputs with sequence length `L=25` and constructs episodic tasks from `DESCRIPTION + Week + tag` labels. The task split is task-level with DESCRIPTION grouping and does not hold out complete DESCRIPTION categories as separate splits.
+SABLE is a few-shot traffic incident recognition framework for single-channel traffic-volume sequences. The released configuration uses volume-only inputs with sequence length `L=25` and constructs episodic tasks from `DESCRIPTION + Week + tag` labels, where the dataset field `tag` denotes the peak-period indicator (`PeakPeriod`). The task split is task-level with DESCRIPTION grouping and does not hold out complete DESCRIPTION categories as separate splits.
 
 The framework combines:
 
@@ -82,7 +82,7 @@ Key verified settings in the released configuration include:
 |---|---|
 | Input channel | Volume only |
 | Sequence length | `L=25` |
-| Task construction | `DESCRIPTION + Week + tag` |
+| Task construction | `DESCRIPTION + Week + tag` (`tag` = `PeakPeriod`) |
 | Split protocol | Task-level, DESCRIPTION-grouped split |
 | Support set | 5 target positives + 5 selected negatives |
 | Query set | 10 target positives + 10 selected negatives |
