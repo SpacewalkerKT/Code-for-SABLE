@@ -78,8 +78,6 @@ python main.py \
   --config experiments/configs/ablation/sable_full.yaml
 ```
 
-For the paper-oriented workflow, the code uses `Volume` records, length-25 sequences, the mean of `Data1`--`Data5` as the baseline, and task keys formed from `DESCRIPTION + Week + tag` (`tag` corresponds to `PeakPeriod`). The retained main configuration uses a fixed validation recall constraint of `R_min=0.80`.
-
 ## Outputs
 
 Depending on the selected configuration, runtime outputs may include logs, checkpoints, metrics, task-sampling records, and result files.
