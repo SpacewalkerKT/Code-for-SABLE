@@ -1,10 +1,10 @@
-# Quick Test Configuration - For CodeOcean Free Tier Validation
-# Purpose: Validate code runs within platform time limits (5-10 minutes)
+# Quick Test Configuration
+# Purpose: Validate the environment and execution pipeline with a small budget
 # Usage: Run this first to ensure the environment is correctly set up
 
 experiment:
   name: "SABLE-QuickTest"
-  description: "Quick test for CodeOcean validation"
+  description: "Quick environment and pipeline test"
   version: "test-v1.0"
 
 # Random seed configuration
@@ -15,16 +15,16 @@ experiment:
   mode: "standard"
   num_runs: 1
 
-# Training parameters - REDUCED FOR QUICK TESTING
+# Reduced training parameters for an environment check
 training:
   k_shot: 5
   q_shot: 10
-  episodes: 10  # ⚠️ QUICK TEST: Only 10 episodes (runs in ~2-3 minutes on CPU)
+  episodes: 10
   seed: 42
   lr_inner: 0.001
   lr_meta: 0.001
   inner_steps: 5
-  patience: 50  # Reduced for quick test
+  patience: 50
   early_stopping: true
 
 # Core component switches (same as full config)
@@ -48,9 +48,9 @@ components:
 recall_priority:
   enabled: true
   rmin_schedule: "linear"
-  r_start: 0.55
+  r_start: 0.80
   r_target: 0.80
-  r_warmup_frac: 0.4
+  r_warmup_frac: 0.0
   fbeta_beta: 2.0
 
 # Resampling Configuration (disabled)
@@ -73,22 +73,10 @@ performance:
 output:
   save_dir: "results/sable_quick_test"
   log_level: "INFO"
-  save_every: 5  # Save more frequently for quick test
+  save_every: 5
 
 # Data configuration
 data:
   raw_dir: "data"
   incident_file: "incident_data.csv"
   normal_file: "common_data.csv"
-
-# ===== Notes =====
-# This config will:
-# 1. Load data from data/ directory
-# 2. Build tasks and initialize model
-# 3. Run 10 training episodes (~2-3 minutes on CPU)
-# 4. Save results to results/sable_quick_test/
-#
-# Expected output:
-# - Episode 1/10 through Episode 10/10
-# - Final metrics (AUC, F1, Recall, Precision)
-# - Model saved to results/sable_quick_test/

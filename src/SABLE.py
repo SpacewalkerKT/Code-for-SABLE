@@ -385,9 +385,9 @@ print(f"[performance optimization] Garbage collection: {'enabled' if ENABLE_GARB
 # ===== recall priority and threshold schedulingconfigurationnewly added =====
 # NOTE: Use this parameter during validation phase based on "recall floor + F_beta maximization" select thresholds, and use for early stopping / optimal model selection with test set frozen threshold value evaluation.
 RMIN_SCHEDULE = "linear"  # optional"linear"linear threshold increase/ "ladder"adaptive ladder (backup)
-R_START = 0.80            # recall floorstarting valuealigned with report“code default fixed value 0.80”for alignment
-R_TARGET = 0.80           # targetrecall floorconsistent with startthereby implementingfixed R_min
-R_WARMUP_FRAC = 0.0       # fixed R_min set to 0linear degrades to constant R_min=0.80
+R_START = 0.80            # recall floor starting value
+R_TARGET = 0.80           # target recall floor
+R_WARMUP_FRAC = 0.0       # zero warmup keeps R_min fixed at 0.80
 
 FBETA_BETA = 2.0          # F_beta of β parameterβ=2 More weight on recallRecommended
 THRESH_EMA = 0.2          # threshold exponentialmoving average coefficientsmooth fluctuations between evaluations
@@ -4194,11 +4194,11 @@ def train_maml(
             hard_neg=hard_neg,
             other_abnormal_ratio=other_abnormal_ratio,
             fixed_threshold=(best_threshold if best_threshold is not None else None),
-            # ===== Save PR Curve data (2026-03-03 ) =====
+            # Save PR-curve data
             save_scores=True,
             method_name=current_method_name,
             output_dir="outputs/fig2",
-            seed=SEED,  # 2026-03-03 pass seed for file naming
+            seed=SEED,
         )
         # Summary after training completes (must be placed after training loop)
         training_end_when = time.time()
@@ -4452,11 +4452,11 @@ def evaluate_on_split(
         hard_neg: bool = False,
         other_abnormal_ratio: float = OTHER_ABNORMAL_RATIO,
         fixed_threshold: Optional[float] = None,
-        # ===== Fig.2/Fig.4 Data Export (2026-03-03 ) =====
+        # Figure-data export
         save_scores: bool = False,  # Whether to save y_true/y_scores to CSV (for Fig.2 PR Curve)
         method_name: str = "unknown",  # Method name (for file naming)
         output_dir: str = "outputs/fig2",  # OutputDirectory
-        seed: int = 42,  # Random seed (for file naming, 2026-03-03 )
+        seed: int = 42,
 ):
     # Optional: sanity check
     assert incident_df_all is not None, "evaluate_on_split requires incident_df_allentire event summary table"
@@ -4482,7 +4482,7 @@ def evaluate_on_split(
     fam_preds = defaultdict(list)  # Family-level predictions
     fam_labels = defaultdict(list)
     fam_probs = defaultdict(list)  # ===== family-level probabilities (for Fig.4 AUC Calculate=====
-    # ===== episode-level AUC collection (for Fig.4, 2026-03-03 ) =====
+    # Episode-level AUC collection
     episode_auc_records = []  # Format: [episode_id, family_id, roc_auc, pr_auc, n_query, pos_rate]
 
     # If override inner_steps
@@ -4595,7 +4595,7 @@ def evaluate_on_split(
             fam_labels[fam].extend(labels.tolist())
             fam_probs[fam].extend(probs.tolist())  # ===== collect family level probability =====
 
-            # ===== collect episode-level AUC(For Fig.4, 2026-03-03 )=====
+            # Collect episode-level AUC
             n_query = len(labels)
             pos_rate = float(np.mean(labels))
             try:
@@ -4728,7 +4728,6 @@ def evaluate_on_split(
     #
     if save_scores and len(all_probs) > 0 and len(all_labels) > 0:
         import pandas as pd
-        from datewhen import datewhen
         os.makedirs(output_dir, exist_ok=True)
 
         # Generate filename containingconfiguration info (prevent overwriting)
@@ -4744,7 +4743,7 @@ def evaluate_on_split(
         print(f"[OK] saved {method_name} PR curve data to: {scores_path}")
         print(f"  configuration: episodes={episodes}, seed={seed}, sample count={len(all_labels)}")
 
-        # ===== save Fig.4 two independent files (2026-03-03 ) =====
+        # Save episode- and family-level records
         if len(episode_auc_records) > 0:
             # create Fig.4 OutputDirectory
             fig4_dir = "outputs/fig4"
@@ -5408,8 +5407,7 @@ if __name__ == "__main__":
                 if _seed is not None:
                     try:
                         SEED = int(_seed)
-                        #  Fix bug: re-set all random seeds after reading config file seed
-                        # Ensure data partitioning reproducibility
+                        # Re-set random seeds after reading the configuration
                         random.seed(SEED)
                         np.random.seed(SEED)
                         torch.manual_seed(SEED)
@@ -5424,10 +5422,7 @@ if __name__ == "__main__":
                 if _lr_in is not None: lr_inner = float(_lr_in)
                 if _lr_me is not None: lr_meta = float(_lr_me)
                 if _inner is not None: inner_steps = int(_inner)
-                #  Fix bug: read k_shot and q_shotconfiguration
-                # Problem: K_SHOT and Q_SHOT hardcoded to 5 and 10, config file training.k_shot/q_shot ignored
-                # Impact: K-shot sensitivity analysis experiments all used K=5, cannot validate effects of different K values
-                # Fix: read k_shot and q_shot from config file, override global variables
+                # Read k_shot and q_shot from the configuration
                 _k_shot = _tr.get("k_shot")
                 _q_shot = _tr.get("q_shot")
                 if _k_shot is not None:
@@ -5518,10 +5513,7 @@ if __name__ == "__main__":
                     else:
                         print(f"[CLI] use_recall_priority = True")
 
-                #  fixBugLoadRecall prioritystrategy parameters2026-02-20fixed by
-                # ProblemConfig fileinof recall_priority.r_start/r_target/r_warmup_frac notbyLoad
-                # impact: actual run (when enabled) default value R_WARMUP_FRAC=0.0, lead to R_min fixed at 0.80
-                # fix: from config file load parameter, override code default value
+                # Read recall-priority parameters from the configuration
                 _recall_priority = _cfg.get("recall_priority", {})
                 if isinstance(_recall_priority, dict):
                     _r_start = _recall_priority.get("r_start")
@@ -5550,7 +5542,7 @@ if __name__ == "__main__":
                     else:
                         print(f"[CLI] use_threshold_search = True")
 
-                #  2026-02-27 Read sparse variational dropout switch (use_sparse_vd)
+                # Read sparse variational dropout switch (use_sparse_vd)
                 # fixed P4 ablation experiment invalidation issue: Config file set use_sparse_vd=false but code not read
                 _use_sparse_vd = _comp.get("use_sparse_vd")
                 if _use_sparse_vd is not None:
@@ -5560,7 +5552,7 @@ if __name__ == "__main__":
                     else:
                         print(f"[CLI] use_sparse_vd = True")
 
-                #  2026-02-27 Read meta-learning framework switch (meta_learning)
+                # Read meta-learning framework switch (meta_learning)
                 # fixed P6 ablation experiment invalidation problem: Config file set meta_learning=false but code not read
                 _meta_learning = _comp.get("meta_learning")
                 if _meta_learning is not None:
@@ -5575,7 +5567,7 @@ if __name__ == "__main__":
             USE_COMPARISON_MODEL = False
             COMPARISON_MODEL_NAME = None
 
-            #  2026-02-27 Handle meta_learning=False ablation experiment
+            # Handle meta_learning=False
             # TimedisabledMeta-learningFrameworkwhenAuto-switching to JointTraininging mode
             # Thus P6 (NoMetaLearning) ablation experiments can correctly evaluate"NoMeta-learning"ofimpact
             if not USE_META_LEARNING and not (isinstance(_model, dict) and _model.get("name")):
@@ -5641,8 +5633,8 @@ if __name__ == "__main__":
             print(f"  lr_meta           = {lr_meta}")
             print(f"  inner_steps       = {inner_steps}")
             print(f"\n[Component Switches]")
-            print(f"  USE_SPARSE_VD                 = {USE_SPARSE_VD}")  #  2026-02-27 newly added
-            print(f"  USE_META_LEARNING             = {USE_META_LEARNING}")  #  2026-02-27 newly added
+            print(f"  USE_SPARSE_VD                 = {USE_SPARSE_VD}")
+            print(f"  USE_META_LEARNING             = {USE_META_LEARNING}")
             print(f"  HARD_NEGATIVE                 = {HARD_NEGATIVE_FLAG}")
             print(f"  USE_CLASS_WEIGHT              = {USE_CLASS_WEIGHT}")
             if USE_CLASS_WEIGHT:

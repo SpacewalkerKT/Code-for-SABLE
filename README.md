@@ -4,24 +4,24 @@
 [![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-This repository provides the implementation of **SABLE**, a sparse Bayesian meta-learning framework for Few-Shot traffic incident recognition.
+This release package provides the implementation of **SABLE**, a sparse Bayesian meta-learning framework for few-shot traffic incident recognition.
 
-The repository accompanies our manuscript submitted to *IEEE Open Journal of Intelligent Transportation Systems* and provides the source code, documented experiment configurations, and a lightweight workflow for method inspection and controlled re-execution.
+The package accompanies our manuscript submitted to *IEEE Open Journal of Intelligent Transportation Systems* and provides the SABLE source code, a main configuration, and a lightweight environment-check configuration.
 
 ## Overview
 
-The released repository is intended to support inspection of the proposed method and execution under the documented configurations. Detailed methodological definitions, experimental protocols, and result analysis are provided in the associated manuscript.
+The release is intended to support inspection of the proposed method and execution under the documented configurations. Detailed methodological definitions, experimental protocols, and result analysis are provided in the associated manuscript.
 
-## Repository Structure
+## Project Structure
 
 ```text
 .
 ├── main.py                    # Command-line entry point
 ├── run.sh                     # Shell
 ├── requirements.txt           # Python dependencies
-├── src/                       # SABLE implementation and baseline models
+├── src/                       # SABLE implementation
 ├── experiments/
-│   └── configs/               # Released experiment configurations
+│   └── configs/ablation/      # Main and quick-test configurations
 ├── data/                      # Data placement instructions
 └── LICENSE                    # MIT License
 ```
@@ -46,7 +46,7 @@ The associated dataset record is available through IEEE DataPort:
 
 **DOI:** `10.21227/d6ht-c375`
 
-The dataset is subject to the terms of its original source and dataset record and is not covered by the MIT License of this repository.
+The dataset is subject to the terms of its original source and dataset record and is not covered by the MIT License applicable to the source code in this release package.
 
 ## Quick Start
 
@@ -69,7 +69,7 @@ The quick-test configuration is intended only for environment and pipeline valid
 
 ## Experiment Configuration
 
-The released YAML files under [`experiments/configs/`](experiments/configs/) document the configurations associated with the experiments.
+The release contains the main SABLE configuration and a reduced quick-test configuration. The quick test is intended only to check the environment and execution pipeline.
 
 The main SABLE configuration can be executed with:
 
@@ -78,7 +78,7 @@ python main.py \
   --config experiments/configs/ablation/sable_full.yaml
 ```
 
-Please refer to the corresponding YAML files and the manuscript for detailed training settings, episodic protocols, evaluation procedures, and experimental definitions.
+For the paper-oriented workflow, the code uses `Volume` records, length-25 sequences, the mean of `Data1`--`Data5` as the baseline, and task keys formed from `DESCRIPTION + Week + tag` (`tag` corresponds to `PeakPeriod`). The retained main configuration uses a fixed validation recall constraint of `R_min=0.80`.
 
 ## Outputs
 
@@ -88,12 +88,12 @@ Generated outputs should be kept separate from archived experimental results.
 
 ## Citation
 
-If you use this repository in your research, please cite the associated SABLE manuscript and, where applicable, the corresponding software release.
+If you use this release package or its source code in your research, please cite the associated SABLE manuscript and, where applicable, the corresponding software release.
 
 Citation information will be updated following publication of the manuscript.
 
 ## License
 
-The source code in this repository is released under the [MIT License](LICENSE).
+The source code in this release package is released under the [MIT License](LICENSE).
 
 Data and other third-party resources remain subject to their respective licenses and terms of use.

@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
-SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
+SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
 
 Main entry point for training and evaluation of the SABLE framework.
-This script provides a unified interface for reproducing paper results.
+This script provides a unified interface for controlled execution of the released configurations.
 
 Usage:
-    python main.py --config experiments/configs/ablation/sable_full_pilot.yaml
-    python main.py --config experiments/configs/ablation/sable_full_pilot.yaml --episodes 500
-    python main.py --config experiments/configs/comparison/compare_maml_pilot.yaml --device cuda:0
+    python main.py --config experiments/configs/ablation/sable_full.yaml
+    python main.py --config experiments/configs/ablation/sable_quick_test.yaml --device cpu
 
 Paper:
-    SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
+    SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
     IEEE Open Journal of Intelligent Transportation Systems (OJ-ITS)
 
 Author: SABLE Research Team
@@ -31,44 +30,18 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection",
+        description="SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Incident Recognition",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run full SABLE (ablation baseline)
+  # Run the main SABLE configuration
   python main.py --config experiments/configs/ablation/sable_full.yaml
 
-  # Run with custom number of episodes
-  python main.py --config experiments/configs/ablation/sable_full.yaml --episodes 500
-
-  # Run comparison experiment
-  python main.py --config experiments/configs/comparison/compare_maml.yaml
+  # Check the environment and execution pipeline
+  python main.py --config experiments/configs/ablation/sable_quick_test.yaml --device cpu
 
   # Run on specific GPU
   python main.py --config experiments/configs/ablation/sable_full.yaml --device cuda:0
-
-  # Run K-shot experiment
-  python main.py --config experiments/configs/kshot/sable_k1.yaml
-
-Available Experiments:
-  Ablation Study:
-    - sable_full.yaml         (Full SABLE)
-    - sable_no_sparsevd.yaml  (Without Sparse VD)
-    - sable_no_classweight.yaml (Without Class Weighting)
-    - sable_no_hardneg.yaml   (Without Hard Negative Mining)
-    - sable_no_threshold.yaml (Without Adaptive Threshold)
-    - sable_no_metalearning.yaml (Without Meta-Learning)
-    - sable_no_recallpriority.yaml (Without Recall Priority)
-
-  Comparison Methods:
-    - compare_maml.yaml       (MAML baseline)
-    - compare_protonet.yaml   (ProtoNet baseline)
-    - compare_logreg.yaml     (Logistic Regression)
-    - compare_joint_training.yaml (Joint Training)
-    - compare_tsa_maml.yaml   (TSA-MAML)
-
-  K-Shot Analysis:
-    - sable_k1.yaml, sable_k3.yaml, sable_k5.yaml, sable_k10.yaml
         """
     )
 
@@ -169,7 +142,7 @@ def print_banner():
 
 
 
-   SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection
+   SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
 
 
 """

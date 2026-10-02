@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 ###############################################################################
-# SABLE - CodeOcean Execution Script
+# SABLE - Execution Script
 #
-# Purpose: One-click execution entry point for CodeOcean environment
+# Purpose: One-click execution entry point
 #
 # Usage:
 #   ./run.sh                              # Use default configuration
@@ -43,8 +43,8 @@ log_error() {
 print_banner() {
     cat <<'EOF'
 ###############################################################################
-# SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Anomaly Detection #
-# CodeOcean Execution Script                                                  #
+# SABLE: Sparse Bayesian Meta-Learning for Few-Shot Traffic Incident Recognition #
+# Release Execution Script                                                       #
 ###############################################################################
 EOF
 }

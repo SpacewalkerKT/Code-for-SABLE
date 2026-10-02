@@ -1,5 +1,5 @@
 # Full SABLE model - Standard configuration
-# Purpose:Quick validation of experiment workflow and performance trends
+# Purpose: Main paper-oriented SABLE configuration
 
 experiment:
   name: "SABLE-Full"
@@ -18,8 +18,8 @@ experiment:
 training:
   k_shot: 5
   q_shot: 10
-  episodes: 500  # Extended configuration: increased from 100 to 500 episodes, to fully demonstrate component differences
-  seed: 42  #  moved to training level, ensure seed setting code can read
+  episodes: 500
+  seed: 42
   lr_inner: 0.001
   lr_meta: 0.001
   inner_steps: 5
@@ -35,7 +35,7 @@ components:
 #  Training strategy innovations
   hard_negative: true         #  Hard Negative Sampling
   use_fixed_pos_weight: true  #  Class Weighting Strategy
-  fixed_pos_weight: 3.0  #  rolled back to good configuration: restored from 20.0 to 3.0
+  fixed_pos_weight: 3.0
 
 #  Inference strategy innovations
   use_recall_priority: true   #  Recall Priority Strategy
@@ -46,15 +46,15 @@ components:
 # Recall Priority Strategy
 recall_priority:
   enabled: true
-  rmin_schedule: "linear"
-  r_start: 0.55  #  2026-01-31good configuration: from0.40restored to0.55
-  r_target: 0.80  #  2026-01-31good configuration: from0.60restored to0.80
-  r_warmup_frac: 0.4
-  fbeta_beta: 2.0  #  2026-01-31good configuration: F2,
+  rmin_schedule: "linear"  # Constant special case because start equals target
+  r_start: 0.80
+  r_target: 0.80
+  r_warmup_frac: 0.0
+  fbeta_beta: 2.0
 
-#  Resampling Configuration(Force disabled)
+# Resampling configuration
 resampling:
-  enabled: false  #  Ablation experimentdisabled
+  enabled: false
   method: null
   target_ratio: 1
   smote_k_neighbors: 5
