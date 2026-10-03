@@ -23,6 +23,17 @@ from sklearn.metrics import (
 # optional dependency:OptunaLazy importPlaceholder to avoidError when not installed
 optuna = None
 
+
+def ensure_imblearn_dependency() -> None:
+    """Verify that the declared imbalanced-learn dependency is available."""
+    try:
+        import imblearn  # noqa: F401
+    except Exception as exc:
+        raise ImportError(
+            "imbalanced-learn is required. Install it with pip install imbalanced-learn."
+        ) from exc
+
+
 class Trial:  # Minimal placeholder class
     def set_user_attr(self, *args, **kwargs):
         pass
@@ -208,8 +219,8 @@ class PerformanceanceMonitor:
         if self.metrics_history:
             print(f"\n Memory usage peak value: {max(m.memory_mb for m in self.metrics_history):.2f}MB")
             if torch.cuda.is_available():
-                gpu_peak = max(m.gpu_memory_mb for m in self.metrics_history
-                             if m.gpu_memory_mb)
+                gpu_peak = max((m.gpu_memory_mb for m in self.metrics_history
+                                if m.gpu_memory_mb is not None), default=0.0)
                 print(f"GPU memory peak value: {gpu_peak:.2f}MB")
         print("="*60)
 
@@ -290,7 +301,7 @@ plt.rcParams['axes.unicode_minus'] = False
 # Fallback: If train entry not implementedProvide explicit placeholder functionPrevent undefined name
 if 'run_training_trial' not in globals():
     def run_training_trial(params):  # pragma: no cover
-        raise NotimplementingedError(
+        raise NotImplementedError(
             "run_training_trial Not yet in SABLE.py implementinged inPlease integrateOriginal training process"
             "to avoidOptuna is not installed Optuna/not integratedtraining entry is not integrated, calling parameter tuning logic"
         )
@@ -334,7 +345,7 @@ lr_meta = 0.01
 kl_warmup_steps = 0  # KL divergence warmup steps0 means according to total rounds 20% automatically calculate
 kl_scale = 0.01  # KL divergence loss scaling factor
 inner_steps = 5
-OTHER_ABNORMAL_RATIO = 0.5  # Other abnormal samples ratio in negative class
+OTHER_ABNORMAL_RATIO = 0.5  # Nominal other-group incident allocation for negative candidate generation
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Script located directory
 CHECKPOINT_DIR = os.path.join(BASE_DIR, "checkpoints")  # Checkpoint save directory
 SAVE_EVERY = 50  # Every50episodeSaveOnce
@@ -871,7 +882,7 @@ def extract_abnormal_features(df, incident_id, sensor_id,
             else:
                 row_series = sub.iloc[0]
             vals = row_series[data_cols].to_numpy(dtype=np.float32, copy=False)
-        except (IndexError, valueError, KeyError, AttributeError):
+        except (IndexError, ValueError, KeyError, AttributeError):
             return None
 
         # Optimization: fast validity check
@@ -921,13 +932,16 @@ def build_abnormal_tasks(incident_df, tracker: Optional[BaselineStatsTracker] = 
     grouped = incident_df.groupby(["task", "IncidentId", "SensorNumber"], as_index=False).size()
     grouped = grouped[["task", "IncidentId", "SensorNumber"]]
 
+    pair_indices = incident_df.groupby(["IncidentId", "SensorNumber"]).indices
+
     task_dict = defaultdict(list)
     # per pair attempt to extract featuresonly count if successful
     for _, row in grouped.iterrows():
         k = row["task"];
         iid = row["IncidentId"];
         sid = row["SensorNumber"]
-        f = extract_abnormal_features(incident_df, iid, sid, tracker)
+        pair_df = incident_df.iloc[pair_indices[(iid, sid)]]
+        f = extract_abnormal_features(pair_df, iid, sid, tracker)
         if f is not None and f.shape == (FEATURE_DIM,) and np.isfinite(f).all():
             task_dict[k].append((iid, sid))
 
@@ -1437,49 +1451,28 @@ def sample_task(task_dict, normal_pool, *,
                 model=None,  # hard_strategy="loss" use
                 device="cpu",
                 debug=False,
-                other_abnormal_ratio=0.5,  # Newly added: ratio of other anomaly samples in negative sampleso
+                other_abnormal_ratio=0.5,  # nominal proportion of other-group incident candidates used in negative candidate generation
                 current_split_tasks=None  # Newly added: all task dictionary for current dataset
                 ):
     """
-    Support SetSupport set
-        purpose: in each task loop(inner loop) to performfast adaptation
-        Timing: each episode during training process
-        purpose: let models fastlearn current taskspecific patterns
-    Query Setquery set
-        purpose: in the same task totest adaptation effectscalculate meta-lossupdate outer loopouter loop
-        timing: immediately aftersupport set adaptationstill in training process
-        Usage: evaluate model generalization capability on current task for updating meta-parameters
+    Sample an OvR episode for a target DESCRIPTION group.
 
-    Taskdistinguish positive class and anomaliesi.e. identify anomaliessamples of a certain class versus normal samples + OtherClassexceptionSample
+    Task units are defined by DESCRIPTION + Week + tag/PeakPeriod.
+    Episode positives are sampled within the target DESCRIPTION group.
+    Sampling starts from the selected task and may be supplemented by samples
+    from other tasks with the same DESCRIPTION within the current split.
+    Positive support/query sizes are k_shot/q_shot (5/10 by default).
 
-    Positive class: specific type of anomaly samples
-        data source: from task_dict extracted exception samples
-        Quantity: Each task has K_SHOT + Q_SHOT = 5 + 10 = 15 positive samples
-            support set: 5 positive samples(for adaptation)
-            query set: 10 positive samplesForTest
-        Featurefeature dimensions for FEATURE_DIMsensor count × 25 time points of difference sequence
+    Negative candidates include normal traffic and other DESCRIPTION groups.
+    other_abnormal_ratio defines the nominal source allocation for candidate
+    generation before HNM oversampling and ranking. Candidate sources may be
+    expanded by neg_oversample and are then combined. Distance-based HNM selects
+    need_neg candidates from this combined pool; the final source ratio is not
+    fixed. Selected negatives are partitioned into support and query subsets.
 
-    Negative class: normal samples + other type anomaly samples
-        normal samplesfrom normal_poolnormal traffic datarandomly sampled from
-        other type exception samplesfrom other tasks' exception eventsrandomly sampled from
-        mixing ratio: controlled by other_abnormal_ratio=0.5 controlsi.e. 50% other exceptions + 50% normal samples
-        negative class quantity allocationwill differ based on mode
-            one_vs_restMode
-                Support Set5 negative samples
-                Query Set10 negative samples
-                total: 15 negative samples
-            oc_mamlMode
-                support set: 0 negative samplesonly use positive class for adaptation
-                Query Set10 negative samples
-                total: 10 negative samples
-
-    EachTaskin
-    one_vs_restMode
-        support set: 5 positive samples (10 samples of a certain class) + 5 negative samples (other anomaly samples: samples: 5 × 0.5 = 2.5 → 2 (towards rounding down) normal samples5 - 2 = 3 → 3) [Foradaptation]
-        query set: 10 positive samples (10 samples of a certain class) + 10 negative samples (other anomaly samples: samples: 10 × 0.5 = 5 → 5 (towards rounding down) normal samples10 - 5 = 5 → 5) [ForTest]
-    oc_mamlMode
-        support set: 5 positive samples(10 samples of a certain class) [only for adaptation]
-        query set: 10 positive samples(10 samples of a certain class) + 10 negative samples(similarly: 5 normalamples + 5OtherClassexceptionSample) [ForTest]
+    In one_vs_rest mode, support/query contain k_shot/q_shot negatives.
+    In oc_maml mode, support contains only positives and query has q_shot
+    negatives. Each returned feature vector has expected_len dimensions.
     """
     assert incident_df_all is not None, "sample_task necessary incident_df_all"
     assert current_split_tasks is not None, "sample_task requires current_split_tasks (current dataset'stask dictionary"
@@ -1543,18 +1536,18 @@ def sample_task(task_dict, normal_pool, *,
             if debug: print(f"[sample_task] #{attempt} Task[{task}]positive class candidates only {len(pos_pairs_all)} < {need_pos}")
             continue
 
-        # ---- positive class: prioritize selectingsame family, different week/tagsamples ----
-        # first try from same familyfrom different tasks to collectSample
+        # ---- positives within the target DESCRIPTION group and current split ----
+        # Start from the selected task; other same-DESCRIPTION tasks may supplement.
         same_family_tasks = [t for t in task_dict.keys() if family_of(t) == current_family and t != task]
 
         pos_feats_clean = []
         bad_pos = 0
 
-        # first from current taskcollect some samples
+        # Collect initial positives from the selected task.
         current_task_pairs = list(pos_pairs_all)
         random.shuffle(current_task_pairs)
 
-        # take a portion from current taskSampleensure not all fromsame week/tag
+        # Initially collect a portion from the selected task.
         max_from_current = max(1, need_pos // 2)  # at least 1, at most half
 
         for entry in current_task_pairs:
@@ -1566,7 +1559,7 @@ def sample_task(task_dict, normal_pool, *,
                 continue
             pos_feats_clean.append(f)
 
-        # then from same family's other tasksto collect samples
+        # Supplement from other same-DESCRIPTION tasks within this split.
         if len(pos_feats_clean) < need_pos and same_family_tasks:
             for other_task in same_family_tasks:
                 if len(pos_feats_clean) >= need_pos:
@@ -1583,7 +1576,7 @@ def sample_task(task_dict, normal_pool, *,
                         continue
                     pos_feats_clean.append(f)
 
-        # if still not enough, supplement from current task
+        # If needed, complete the positives from the selected task.
         if len(pos_feats_clean) < need_pos:
             remaining_pairs = current_task_pairs[max_from_current:]
             for entry in remaining_pairs:
@@ -1609,7 +1602,7 @@ def sample_task(task_dict, normal_pool, *,
             need_neg = k_shot + q_shot
 
         # ---- negative class: mix normal dataand other exception dataonly from current dataset ----
-        # Calculatenecessaryofnormal samplesAndother exceptionsSamplequantity
+        # Nominal source allocation before candidate expansion and HNM ranking.
         need_other_abnormal = int(need_neg * other_abnormal_ratio)
         need_normal = need_neg - need_other_abnormal
 
@@ -2924,9 +2917,9 @@ def analyze_task_sampling_log(log_path="task_sampling_log.csv"):
 
 
 def compute_task_imbalance_metrics(train_tasks, normal_train, mode="one_vs_rest", other_abnormal_ratio=0.5):
-    """Analyze class imbalance for each task in training set and return detailed results"""
+    """Report training-task pool-size diagnostics, not episodic class or candidate ratios."""
     if not train_tasks:
-        print("No training tasks, cannot calculate IR metrics")
+        print("No training tasks, cannot calculate pool-size diagnostics")
         return pd.DataFrame()
 
     total_normal = len(normal_train)
@@ -2937,7 +2930,7 @@ def compute_task_imbalance_metrics(train_tasks, normal_train, mode="one_vs_rest"
         family = task_key.split("__")[0]
         pos_count = len(pairs)
         other_abnormal = total_positive - pos_count
-        # In one_vs_rest with oc_maml, negative sample pool consists of normal samples and other  anomaly samples grouped into
+        # Comparison pool includes all remaining training-task samples and the training normal pool.
         neg_count = other_abnormal + total_normal
         min_count = min(pos_count, neg_count)
         if min_count == 0:
@@ -2956,16 +2949,16 @@ def compute_task_imbalance_metrics(train_tasks, normal_train, mode="one_vs_rest"
 
     df = pd.DataFrame(records)
     if df.empty:
-        print("Cannot generate valid task imbalance statistics")
+        print("Cannot generate valid task pool-size diagnostics")
         return df
 
-    print("\n=== Training Task Class Imbalance Statistics ===")
+    print("\n=== Training Task Pool-size Diagnostics ===")
     quantiles = df["ir"].quantile([0.1, 0.5, 0.9])
-    print(f"IR quantiles: P10={quantiles.loc[0.1]:.2f} | P50={quantiles.loc[0.5]:.2f} | P90={quantiles.loc[0.9]:.2f}")
+    print(f"Pool-size diagnostic quantiles: P10={quantiles.loc[0.1]:.2f} | P50={quantiles.loc[0.5]:.2f} | P90={quantiles.loc[0.9]:.2f}")
     print("Most extreme tasks:")
     for _, row in df.sort_values("ir", ascending=False).head(min(5, len(df))).iterrows():
         print(
-            f"  Task[{row['task']}] (family={row['family']}) Positive={row['pos_count']} | Negative pool={row['neg_pool_count']} | IR={row['ir']:.2f}"
+            f"  Task[{row['task']}] (family={row['family']}) Task samples={row['pos_count']} | Comparison pool={row['neg_pool_count']} | Pool-size diagnostic={row['ir']:.2f}"
         )
     return df
 
@@ -3074,7 +3067,7 @@ def analyze_minority_density(train_tasks, normal_train, incident_df_all, top_k=5
 
 
 def summarize_rare_tasks(train_tasks, normal_train, log_path="task_sampling_log.csv", top_n=5, mode="one_vs_rest"):
-    """Summarize positive and negative sample sizes and sampling frequency for few-shot tasks"""
+    """Summarize task and comparison-pool sizes and task sampling frequency."""
     if not train_tasks:
         print("No training tasks, cannot summarize few-shot task info")
         return pd.DataFrame()
@@ -3093,7 +3086,7 @@ def summarize_rare_tasks(train_tasks, normal_train, log_path="task_sampling_log.
             log_df = None
             print("Failed to read task sampling log, cannot summarize sampling frequency")
     else:
-        print("Not found task_sampling_log.csv, only output theoretical negative sample size")
+        print("Not found task_sampling_log.csv, only output comparison-pool size")
 
     if log_df is not None:
         success_df = log_df[log_df.get("status", "") == "success"]
@@ -3123,7 +3116,7 @@ def summarize_rare_tasks(train_tasks, normal_train, log_path="task_sampling_log.
         else:
             freq_str = f"{freq * 100:.2f}%"
         print(
-            f"Task[{task_key}] Positive={pos_count} | Negative pool={neg_count} | Theoretical IR={max(pos_count, neg_count) / max(1, min(pos_count, neg_count)):.2f} | Sampling ratio={freq_str}"
+            f"Task[{task_key}] Task samples={pos_count} | Comparison pool={neg_count} | Pool-size diagnostic={max(pos_count, neg_count) / max(1, min(pos_count, neg_count)):.2f} | Sampling ratio={freq_str}"
         )
 
     return pd.DataFrame(rows)
@@ -3141,7 +3134,7 @@ def _parse_int_list_field(raw) -> List[int]:
             return []
         try:
             parsed = ast.literal_eval(text)
-        except (valueError, SyntaxError):
+        except (ValueError, SyntaxError):
             return []
     else:
         parsed = raw
@@ -3151,7 +3144,7 @@ def _parse_int_list_field(raw) -> List[int]:
         for item in parsed:
             try:
                 result.append(int(item))
-            except (TypeError, valueError):
+            except (TypeError, ValueError):
                 continue
     elif isinstance(parsed, (int, np.integer)):
         result.append(int(parsed))
@@ -3307,7 +3300,7 @@ def train_maml(
     print("\n=== Analyze Family Differences ===")
     analyze_family_diversity(task_dict, incident_df_all)
     print("=" * 40)
-    elapsed_since_session = start_inner_time - add_time  # add_time is session_start_when
+    elapsed_since_session = start_inner_whenr - add_when
     print(f"currentcumulativeRunwhen: {elapsed_since_session:.2f}sec / {elapsed_since_session / 60:.2f}minutes / {elapsed_since_session / 3600:.2f}Smallwhen")
     # ======optional============
     '''
@@ -3323,7 +3316,7 @@ def train_maml(
 
     print(f"Task split: train={len(train_tasks)} | val={len(val_tasks)} | test={len(test_tasks)}")
     print(f"normal pool splitting: train={len(normal_train)} | val/test={len(normal_val) + len(normal_test)}")
-    elapsed_since_session = start_inner_time - add_time  # add_time is session_start_when
+    elapsed_since_session = start_inner_whenr - add_when
     print(
         f"currentcumulativeRunwhen: {elapsed_since_session:.2f}sec / {elapsed_since_session / 60:.2f}minutes / {elapsed_since_session / 3600:.2f}Smallwhen")
 
@@ -3336,7 +3329,7 @@ def train_maml(
     normal_train_active = normal_train
 
     # ===== Hard Negative statusPrint =====
-    print(f"[HardNeg] status={'ON' if hard_neg else 'OFF'} | Default strategy=distance |  candidate amplification factor=5 | other anomaly ratio={other_abnormal_ratio}")
+    print(f"[HardNeg] status={'ON' if hard_neg else 'OFF'} | Default strategy=distance |  candidate amplification factor=5 | nominal other-group candidate ratio={other_abnormal_ratio}")
 
     # based onconfigurationSelectmodelscreateWay
     if use_comparison_model:
@@ -3419,7 +3412,7 @@ def train_maml(
     meta_opt = torch.optim.Adam(model.parameters(), lr=lr_meta)
 
     print(f"Usemodels: {model_type.upper()}")
-    elapsed_since_session = start_inner_time - add_time  # add_time is session_start_when
+    elapsed_since_session = start_inner_whenr - add_when
     print(
         f"currentcumulativeRunwhen: {elapsed_since_session:.2f}sec / {elapsed_since_session / 60:.2f}minutes / {elapsed_since_session / 3600:.2f}Smallwhen")
 
@@ -3530,9 +3523,11 @@ def train_maml(
     total_eps = episodes if not SANITY else min(episodes, 10)
 
     # TrainingStartingwhenrecordwhenSupportfromcheckpointResume
-    if 'checkpoint' in locals() and checkpoint is not None and 'accumulated_training_when' in checkpoint:
+    if 'checkpoint' in locals() and checkpoint is not None and (
+            'accumulated_training_time' in checkpoint or 'accumulated_training_when' in checkpoint):
         # fromcheckpointResumecumulativeTrainingwhen
-        accumulated_training_when = checkpoint['accumulated_training_when']
+        accumulated_training_when = checkpoint.get(
+            'accumulated_training_time', checkpoint.get('accumulated_training_when', 0.0))
         print(
             f"ResumecumulativeTrainingwhen: {accumulated_training_when:.2f}sec / {accumulated_training_when / 60:.2f}minutes / {accumulated_training_when / 3600:.2f}Smallwhen / {accumulated_training_when / 86400:.2f}Day")
     else:
@@ -3576,13 +3571,13 @@ def train_maml(
                         mode=mode,
                         incident_df_all=incident_df_all,
                         debug=False,
-                        other_abnormal_ratio=other_abnormal_ratio,  # Ratio of other anomalies in negative samples
+                        other_abnormal_ratio=other_abnormal_ratio,  # Nominal other-group allocation for negative candidate generation
                         hard_neg=hard_neg,
                     )
                     sx, sy, qx, qy, info = _unwrap_sample_task(sample_result)
                     got = True
                     break
-                except RunwhenError as e:
+                except RuntimeError as e:
                     last_fail_task = e.args[0] if len(e.args) > 0 else None
                     continue
             if not got:
@@ -3996,7 +3991,7 @@ def train_maml(
                 f"  [Recall priority] R_min={r_min:.3f}, t*={sel['threshold']:.3f}, "
                 f"Recall@t*={sel['recall']:.3f}, F{int(FBETA_BETA)}@t*={sel['fbeta']:.3f}, "
                 f"Precision@t*={sel['precision']:.3f}, PosRate@t*={sel['pos_rate']:.3f}, "
-                f"feasible={sel['feasible']}"
+                f"{'raw_search_feasible' if USE_THRESHOLD_SEARCH else 'fixed_threshold_available'}={sel['feasible']}"
             )
 
             # recordto TensorBoardIf available
@@ -4041,7 +4036,7 @@ def train_maml(
                 epochs_no_improve = 0
             else:
                 epochs_no_improve += eval_every
-                reason = "Infeasible (Recall<R_min)" if not sel["feasible"] else "No improvement"
+                reason = "No feasible raw threshold" if not sel["feasible"] else "No improvement"
                 if USE_EARLY_STOPPING:
                     print(f"  [Early stopping criterion] {reason}. Epochs until early stopping: {patience - epochs_no_improve} round.")
 
@@ -4074,8 +4069,8 @@ def train_maml(
                 'lr_meta': lr_meta,
                 'kl_warmup_steps': kl_warmup_steps,
                 'kl_scale': kl_scale,
-                'accumulated_training_time': total_accumulated_time,  # Cumulative training time
-                'session_start_time': session_start_time,  # Current session start time
+                'accumulated_training_time': total_accumulated_when,  # Cumulative training time
+                'session_start_time': session_start_when,  # Current session start time
                 'inner_steps': inner_steps,
                 'mode': mode
             }
@@ -4448,7 +4443,7 @@ def evaluate_on_split(
     if USE_COMPARISON_MODEL:
         # Comparison models (JointTraininging/LogReg) output [N] single logit, use BCEWithLogitsLoss
         # NOTE: reduction must be 'mean', otherwise torch.autograd.grad will error (requires scalar outputut
-        loss_fn = nn.BCEwithLogitsLoss(reduction="mean")
+        loss_fn = nn.BCEWithLogitsLoss(reduction="mean")
     else:
         # SABLE models output [N, 2] binary class logits, use CrossEntropyLoss
         loss_fn = nn.CrossEntropyLoss()
@@ -4484,11 +4479,11 @@ def evaluate_on_split(
                 mode=mode,
                 incident_df_all=incident_df_all,
                 debug=False,
-                other_abnormal_ratio=other_abnormal_ratio,  # keepconsistentofratio
+                other_abnormal_ratio=other_abnormal_ratio,  # Keep the nominal candidate-source allocation consistent.
                 hard_neg=hard_neg,
             )
             sx, sy, qx, qy, _info = _unwrap_sample_task(sample_result)
-        except RunwhenError:
+        except RuntimeError:
             # Skipped this one episode
             continue
 
@@ -5652,7 +5647,7 @@ if __name__ == "__main__":
 
         logging.basicConfig(
             level=logging.INFO,
-            format='%(ascwhen)s - %(message)s',
+            format='%(asctime)s - %(message)s',
             handlers=[
                 logging.FileHandler(log_file_path, encoding='utf-8'),
                 logging.StreamHandler(sys.stdout)
