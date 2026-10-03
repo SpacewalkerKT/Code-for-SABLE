@@ -5,7 +5,7 @@
 experiment:
   name: "SABLE-QuickTest"
   description: "Quick environment and pipeline test"
-  version: "test-v1.0"
+  version: "test"
 
 # Random seed configuration
   seed: 42

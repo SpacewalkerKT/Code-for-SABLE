@@ -1,20 +1,4 @@
 # SABLE.py - SABLE Framework Implementation
-# # File header fix: removed mistakenly inserted runwhen code
-#
-# IMPORTANT:
-# 1. This file is based on SABLE.py, specifically for performance optimization
-# 2. Original SABLE.py remains unchanged as the official version for SCI paper
-# 3. All optimizations preserve program logic and model performance
-# 4. Only optimize computational efficiency, memory usage, and GPU utilization
-# 5. Anyconfiguration changes affecting results will be confirmed in advance
-#
-# Optimization Log:
-# - [2025-01-03] Created optimized version, started performance analysis
-#
-# Original File Information:
-# - Project: Meta-Learning (MAML) Traffic Anomaly Detection Research
-# - Purpose: SCI paper experimental code
-# - Features: K-shot anomaly detectionone_vs_restAndoc_mamlMode
 
 import pandas as pd
 import numpy as np
@@ -339,7 +323,7 @@ class StreamToLogger:
         pass
 
 
-# =====configurationperformance optimizationVersion =====
+# ===== Default training configuration =====
 K_SHOT = 5
 Q_SHOT = 10
 EPISODES = 5000
@@ -348,7 +332,7 @@ patience = 500  # define "patience", i.e., when validation set performance does 
 lr_inner = 0.005
 lr_meta = 0.01
 kl_warmup_steps = 0  # KL divergence warmup steps0 means according to total rounds 20% automatically calculate
-kl_scale = 0.01  # KL divergence loss scaling factorAligned with reported default λ_KL
+kl_scale = 0.01  # KL divergence loss scaling factor
 inner_steps = 5
 OTHER_ABNORMAL_RATIO = 0.5  # Other abnormal samples ratio in negative class
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Script located directory
@@ -382,7 +366,7 @@ LOG_FREQUENCY = 1  # logOutputFrequency
 print(f"[performance optimization] Performance monitor: {'enabled' if ENABLE_PERFORMANCE_MONITORING else 'disabled'}")
 print(f"[performance optimization] Garbage collection: {'enabled' if ENABLE_GARBAGE_COLLECTION else 'disabled'} (Frequency: Every {GC_FREQUENCY} rounds)")
 
-# ===== recall priority and threshold schedulingconfigurationnewly added =====
+# ===== Recall priority and threshold scheduling =====
 # NOTE: Use this parameter during validation phase based on "recall floor + F_beta maximization" select thresholds, and use for early stopping / optimal model selection with test set frozen threshold value evaluation.
 RMIN_SCHEDULE = "linear"  # optional"linear"linear threshold increase/ "ladder"adaptive ladder (backup)
 R_START = 0.80            # recall floor starting value
@@ -421,21 +405,19 @@ print(f"[Feature Config] mode = {FEATURE_MODE}, sensor types = {FEATURE_CHANNELS
 # ===== class weight fixed switchTo emphasize recall =====
 USE_CLASS_WEIGHT = True      # whether to enable class weightingcore SABLE functionality
 USE_FIXED_POS_WEIGHT = True  # fixed positive weight rather thanbased onper-query count
-FIXED_POS_WEIGHT = 1.6       # fixed positive class weight valuealigned with optimal w_pos=1.6 for alignment
+FIXED_POS_WEIGHT = 1.6       # default value; released configurations may override it
 
-# ===== Threshold searchswitchablation experiment control =====
+# ===== Threshold search control =====
 USE_THRESHOLD_SEARCH = True  # whether to use adaptive threshold searchFalse(when enabled)fixed threshold 0.5
 FIXED_THRESHOLD = 0.5        # disabledThreshold search(when enabled)offixed threshold
 
 # ===== hard negative sampling strategycore functionality =====
 HARD_NEGATIVE_FLAG = True  # whether to enable hard negative sampling strategycore strategy, enabled by default
 
-# ===== Sparse variational dropoutcomponentArchitectural Innovations =====
-# Added config reading support, fixed P4 ablation experiment invalidation problem
+# ===== Sparse variational dropout component =====
 USE_SPARSE_VD = True  # whether to use SparseVD linear layerTrue: B_SMALL_Transformer, False: StandardTransformer
 
-# ===== Meta-learningFrameworkcomponentArchitectural Innovations =====
-# Addedconfiguration reading support, fixed P6 ablation experiment invalidation problem
+# ===== Meta-learning component =====
 USE_META_LEARNING = True  # whether to use MAML meta-learning frameworkTrue: train_maml, False: standard supervised learning
 
 
@@ -3288,12 +3270,12 @@ def train_maml(
         checkpoint_dir=CHECKPOINT_DIR,  # checkpointDirectory
         add_when=session_start_when,
         run_log_dir=None,  # TimewhensRunoflogDirectory
-        # ===== newly added sampling with weightconfigurationfacilitate sweep =====
+        # Sampling-weight configuration
     hard_neg: bool = True,  # Hard negative sample mining enabled by default (core strategy), manually disable for ablation
         other_abnormal_ratio: float = OTHER_ABNORMAL_RATIO,
         use_fixed_pos_weight: Optional[bool] = None,
         fixed_pos_weight: Optional[float] = None,
-        # ===== newly added comparison modelssupport =====
+        # Comparison-model support
         use_comparison_model: bool = False,  # Whether to use comparison models
         comparison_model_name: Optional[str] = None,  # Comparison model name
         comparison_config: Optional[dict] = None,  # Complete comparison modelconfiguration
@@ -4063,7 +4045,7 @@ def train_maml(
                 if USE_EARLY_STOPPING:
                     print(f"  [Early stopping criterion] {reason}. Epochs until early stopping: {patience - epochs_no_improve} round.")
 
-            # Only check early stopping conditions when early stopping enabled (supports pilot ablationneTrainingepoch
+            # Check early stopping only when it is enabled
             if USE_EARLY_STOPPING and epochs_no_improve >= patience:
                 print(f"\n  Validation set did not improve for {epochs_no_improve} epochs (based on F_beta@t* criterion), No.{ep} round triggerearly stopping")
                 break
@@ -4249,7 +4231,7 @@ def train_maml(
         )
 
     if final_val_results is not None or final_test_results is not None:
-        print(f"[Exp-B][Step9] Evaluation completed, newly added figures with family metrics output to {metrics_dir}/")
+        print(f"[Evaluation] Family metrics saved to {metrics_dir}/")
 
     # ===== Close TensorBoard logger =====
     writer.close()
@@ -4439,7 +4421,7 @@ def evaluate_on_split(
         lr_inner=lr_inner,
         inner_steps=inner_steps,
         first_order=False,
-        # === Insert point B: newly added sanity switch ===
+        # Sanity-check switch
         shuffle_labels=False,
         no_adapt=False,
         K_override=None,
@@ -4719,12 +4701,12 @@ def evaluate_on_split(
             "acc": float(acc),
             "recall": float(rec),
             "f1": float(f1),
-            "roc_auc": float(fam_roc_auc),  # newly added
-            "pr_auc": float(fam_pr_auc)      # newly added
+            "roc_auc": float(fam_roc_auc),
+            "pr_auc": float(fam_pr_auc)
         }
     results["family_metrics"] = family_metrics
 
-    # ===== newly addedSave y_true/y_scores to CSVFor Fig.2 PR Curve=====
+    # Save y_true/y_scores for PR-curve analysis
     #
     if save_scores and len(all_probs) > 0 and len(all_labels) > 0:
         import pandas as pd
@@ -5431,7 +5413,7 @@ if __name__ == "__main__":
                 if _q_shot is not None:
                     Q_SHOT = int(_q_shot)
                     print(f"[CLI] q_shot = {Q_SHOT}")
-                # Read early stoppingconfiguration (newly added:support pilot ablation unified training epoch)
+                # Read early-stopping configuration
                 _early_stop = _tr.get("early_stopping")
                 if _early_stop is not None:
                     USE_EARLY_STOPPING = bool(_early_stop)
@@ -5468,7 +5450,7 @@ if __name__ == "__main__":
                 # Compatible with hard_neg / hard_negative / use_hard_negatives three type key names (priority decreasing)
                 _hard_neg_key = _comp.get("hard_neg")
                 _hard_negative_key = _comp.get("hard_negative")
-                _use_hard_negatives_key = _comp.get("use_hard_negatives")  # newly added: ablation configuration use this field
+                _use_hard_negatives_key = _comp.get("use_hard_negatives")
                 if _hard_neg_key is not None and _hard_negative_key is not None and bool(_hard_neg_key) != bool(_hard_negative_key):
                     print("[CLI][WARNING] detected at same time exists hard_neg with hard_negative and take value inconsistent, adopt hard_neg valueue")
                 if _hard_neg_key is not None:
@@ -5543,7 +5525,6 @@ if __name__ == "__main__":
                         print(f"[CLI] use_threshold_search = True")
 
                 # Read sparse variational dropout switch (use_sparse_vd)
-                # fixed P4 ablation experiment invalidation issue: Config file set use_sparse_vd=false but code not read
                 _use_sparse_vd = _comp.get("use_sparse_vd")
                 if _use_sparse_vd is not None:
                     USE_SPARSE_VD = bool(_use_sparse_vd)
@@ -5553,7 +5534,6 @@ if __name__ == "__main__":
                         print(f"[CLI] use_sparse_vd = True")
 
                 # Read meta-learning framework switch (meta_learning)
-                # fixed P6 ablation experiment invalidation problem: Config file set meta_learning=false but code not read
                 _meta_learning = _comp.get("meta_learning")
                 if _meta_learning is not None:
                     USE_META_LEARNING = bool(_meta_learning)
@@ -5568,8 +5548,6 @@ if __name__ == "__main__":
             COMPARISON_MODEL_NAME = None
 
             # Handle meta_learning=False
-            # TimedisabledMeta-learningFrameworkwhenAuto-switching to JointTraininging mode
-            # Thus P6 (NoMetaLearning) ablation experiments can correctly evaluate"NoMeta-learning"ofimpact
             if not USE_META_LEARNING and not (isinstance(_model, dict) and _model.get("name")):
                 USE_COMPARISON_MODEL = True
                 COMPARISON_MODEL_NAME = "JointTraininging"
@@ -5592,14 +5570,12 @@ if __name__ == "__main__":
                 print(f"[CLI]    - HARD_NEGATIVE = {HARD_NEGATIVE_FLAG}")
                 print(f"[CLI]    - RECALL_PRIORITY (RMIN_SCHEDULE) = {RMIN_SCHEDULE}")
             else:
-                # ablationExperimentsNo model.name field
+                # SABLE configurations do not require model.name
                 # NOTE: If already because meta_learning=False set USE_COMPARISON_MODEL=True, do not override
                 if not USE_COMPARISON_MODEL:
-                    # Standard ablation experiment: using SABLE framework
-                    print(f"[CLI] Detected ablation experiment config (no model.name field)")
+                    print(f"[CLI] Detected SABLE configuration (no model.name field)")
                 else:
-                    # meta_learning=False lead to ablation experiments: use comparison models
-                    print(f"[CLI] Detected ablation experiment config (no model.name field)")
+                    print(f"[CLI] Detected SABLE configuration (no model.name field)")
                     print(f"[CLI]    But meta_learning=False, will use comparison model{COMPARISON_MODEL_NAME}")
 
             # Map analysis_export (export JSONL)
@@ -5948,7 +5924,7 @@ if __name__ == "__main__":
             add_when=session_start_when,  # pass cumulative time
             run_log_dir=run_log_dir,
             hard_neg=HARD_NEGATIVE_FLAG,
-            # ===== newly added comparison modelssupport =====
+            # Comparison-model support
             use_comparison_model=USE_COMPARISON_MODEL,
             comparison_model_name=COMPARISON_MODEL_NAME,
             comparison_config=_cfg,

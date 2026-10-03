@@ -4,8 +4,7 @@
 experiment:
   name: "SABLE-Full"
   description: "Full SABLE model"
-  version: "v2.0"
-
+  version: "full"
 # Random seed configuration
   seed: 42
   seed_list: [42]  # Uses only one seed

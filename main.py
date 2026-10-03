@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
-
 Main entry point for training and evaluation of the SABLE framework.
 This script provides a unified interface for controlled execution of the released configurations.
 
@@ -9,11 +7,6 @@ Usage:
     python main.py --config experiments/configs/ablation/sable_full.yaml
     python main.py --config experiments/configs/ablation/sable_quick_test.yaml --device cpu
 
-Paper:
-    SABLE: A Sparse Bayesian Meta-Learning Framework for Few-Shot Traffic Incident Recognition
-    IEEE Open Journal of Intelligent Transportation Systems (OJ-ITS)
-
-Author: SABLE Research Team
 License: MIT
 """
 
