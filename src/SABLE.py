@@ -5982,8 +5982,8 @@ if __name__ == "__main__":
                     if perf_monitor.metrics_history:
                         f.write(f"\n Memory usage peak value: {max(m.memory_mb for m in perf_monitor.metrics_history):.2f}MB\n")
                         if torch.cuda.is_available():
-                            gpu_peak = max(m.gpu_memory_mb for m in perf_monitor.metrics_history
-                                         if m.gpu_memory_mb)
+                            gpu_peak = max((m.gpu_memory_mb for m in perf_monitor.metrics_history
+                                            if m.gpu_memory_mb is not None), default=0.0)
                             f.write(f"GPU memory peak value: {gpu_peak:.2f}MB\n")
 
                 print(f"Performance report saved to: {performance_report_path}")
