@@ -4,7 +4,7 @@
 [![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-This release package provides the implementation of **SABLE**, a sparse Bayesian meta-learning framework for few-shot traffic incident recognition.
+This release package provides the implementation of SABLE, a sparse Bayesian meta-learning framework for few-shot traffic incident recognition.
 
 The package accompanies our manuscript submitted to *IEEE Open Journal of Intelligent Transportation Systems* and provides the SABLE source code, a main configuration, and a lightweight environment-check configuration.
 
